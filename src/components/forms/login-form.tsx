@@ -1,3 +1,5 @@
+// src/components/forms/login-form.tsx
+
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -17,6 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { toast } from "sonner"
 import { Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
@@ -24,11 +27,11 @@ const formSchema = z.object({
 });
 
 export default function LoginForm() {
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-//   const { toast } = useToast();
   const returnUrl = searchParams.get('returnUrl') || '/dashboard';
+  const errorMessage = searchParams.get('error');
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -37,27 +40,42 @@ export default function LoginForm() {
       password: '',
     },
   });
+  
+  // Hiển thị thông báo lỗi từ URL nếu có
+  useEffect(() => {
+    if (errorMessage === 'session_expired') {
+      toast('Session Expired', {
+        description: 'Your session has expired. Please log in again.',
+      });
+    }
+  }, [errorMessage]);
+
+  // Chuyển hướng nếu đã xác thực
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push(returnUrl);
+    }
+  }, [isAuthenticated, router, returnUrl]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      // Show toast first
-      toast('Logging in...',{
+      // Hiển thị toast đầu tiên
+      toast('Logging in...', {
         description: 'Please wait...',
       });
       
       await login(values.email, values.password);
       
-      // Use a timeout to ensure the cookie is set before redirecting
-      toast('Login successful',{
+      toast('Login successful', {
         description: 'Welcome back!',
       });
       
-      // Use direct window location for more reliable navigation
+      // Đặt timeout nhỏ để đảm bảo cookies đã được đặt trước khi chuyển hướng
       setTimeout(() => {
-        window.location.href = returnUrl;
+        router.push(returnUrl);
       }, 500);
     } catch (error: any) {
-      toast('Login failed',{
+      toast('Login failed', {
         description: error.response?.data?.error || 'Invalid credentials',
       });
     }

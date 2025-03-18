@@ -1,3 +1,5 @@
+// src/contexts/auth-context.tsx
+
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
@@ -13,6 +15,7 @@ interface AuthContextType {
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  refreshUserData: () => Promise<void>;
 }
 
 interface RegisterData {
@@ -29,51 +32,83 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  // Hàm chung để đồng bộ giữa cookie và localStorage
+  const syncAuthState = (userData: User | null, token?: string) => {
+    if (userData && token) {
+      // Nếu có cả data và token, lưu trữ cả hai
+      localStorage.setItem('user', JSON.stringify(userData));
+      setCookie('token', token, { 
+        maxAge: 30 * 24 * 60 * 60, // 30 ngày
+        path: '/',
+        sameSite: 'lax'
+      });
+      setUser(userData);
+    } else {
+      // Nếu không có một trong hai, xóa cả hai để đảm bảo trạng thái sạch
+      localStorage.removeItem('user');
+      deleteCookie('token', { path: '/' });
+      setUser(null);
+    }
+  };
+
+  // Hàm refresh user data từ server
+  const refreshUserData = async () => {
+    try {
+      const token = getCookie('token');
+      if (!token) {
+        throw new Error('No token found');
+      }
+
+      const response = await api.get('/auth/me');
+      if (response.data && response.data.data) {
+        setUser(response.data.data);
+        localStorage.setItem('user', JSON.stringify(response.data.data));
+        return response.data.data;
+      }
+      throw new Error('Invalid user data');
+    } catch (error) {
+      console.error('Failed to refresh user data:', error);
+      syncAuthState(null);
+      throw error;
+    }
+  };
+
+  // Khởi tạo trạng thái xác thực khi component mount
   useEffect(() => {
     const initAuth = async () => {
-      // Get token from cookie
       const token = getCookie('token');
       console.log('Auth context init - token exists:', !!token);
       
-      // Try to get user from localStorage as a quick start
-      let localUser = null;
-      const storedUser = localStorage.getItem('user');
-      
-      // Inconsistent state handling - synchronize storage
-      if (storedUser && !token) {
-        // User data exists but token is missing - we should clear the user data
-        console.log('Auth context init - inconsistent state: user data exists but token missing');
-        localStorage.removeItem('user');
-      } else if (storedUser) {
-        try {
-          localUser = JSON.parse(storedUser);
-          console.log('Auth context init - found user in localStorage');
-          // Set user from localStorage temporarily while we validate with server
-          setUser(localUser);
-        } catch (error) {
-          console.error('Failed to parse user data from localStorage', error);
-          localStorage.removeItem('user');
-        }
-      }
-      
-      // If no token, we're definitely not authenticated
+      // Nếu không có token, chắc chắn không được xác thực
       if (!token) {
         console.log('Auth context init - no token, not authenticated');
-        setUser(null); // Ensure user is null if no token
+        syncAuthState(null);
         setLoading(false);
         return;
       }
       
-      // Always validate token with server regardless of local storage
+      // Kiểm tra nhanh từ localStorage
+      let localUser = null;
+      try {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          localUser = JSON.parse(storedUser);
+          console.log('Auth context init - found user in localStorage');
+          setUser(localUser);
+        }
+      } catch (error) {
+        console.error('Failed to parse user data from localStorage', error);
+        localStorage.removeItem('user');
+      }
+      
+      // Luôn xác thực với server
       try {
         console.log('Auth context init - validating token with server');
         const response = await api.get('/auth/me');
         
         if (response.data && response.data.data) {
           console.log('Auth context init - token validated successfully');
-          // Update user with fresh data from server
           setUser(response.data.data);
-          // Update localStorage with fresh data
           localStorage.setItem('user', JSON.stringify(response.data.data));
         } else {
           console.error('Auth context init - server returned invalid user data');
@@ -81,10 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } catch (error) {
         console.error('Auth context init - token validation failed', error);
-        // Clear authentication
-        deleteCookie('token', { path: '/' });
-        localStorage.removeItem('user');
-        setUser(null);
+        syncAuthState(null);
       } finally {
         setLoading(false);
       }
@@ -93,6 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
   }, []);
 
+  // Login function cải tiến
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
@@ -102,19 +135,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       console.log('Login - successful, received user data:', user);
       
-      // Store token in both HTTP-only cookie and a client-side cookie
-      // The server should set the HTTP-only cookie, but we'll also set a client-side cookie
-      setCookie('token', token, { 
-        maxAge: 30 * 24 * 60 * 60, // 30 days
-        path: '/',
-        sameSite: 'lax'
-      });
-      
-      // Store user data in localStorage
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      // Update state
-      setUser(user);
+      // Đồng bộ trạng thái xác thực
+      syncAuthState(user, token);
       
       // Clear any errors
       if (window.location.href.includes('error=')) {
@@ -122,7 +144,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       console.log('Login - auth state updated successfully');
-      // We don't redirect here anymore - the calling component handles the redirect
       
     } catch (error) {
       console.error('Login failed', error);
@@ -132,6 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
   
+  // Register function cải tiến
   const register = async (data: RegisterData) => {
     setLoading(true);
     try {
@@ -141,27 +163,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       console.log('Register - successful, received user data:', user);
       
-      // The server should set the HTTP-only cookie, but we'll also set a client-side cookie
-      // as a fallback with the same path and expiry
-      setCookie('token', token, { 
-        maxAge: 30 * 24 * 60 * 60, // 30 days
-        path: '/',
-        sameSite: 'lax'
-      });
+      // Đồng bộ trạng thái xác thực
+      syncAuthState(user, token);
       
-      // Store user data
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      // Update state
-      setUser(user);
-      
-      // Navigate to dashboard with delay to ensure cookies are set
-      console.log('Register - redirecting to dashboard');
+      console.log('Register - auth state updated successfully');
       
       // Use a longer timeout to ensure cookie processing
-      setTimeout(() => {
-        window.location.href = '/dashboard'; // Use direct location change instead of router
-      }, 200);
+      return user;
     } catch (error) {
       console.error('Registration failed', error);
       throw error;
@@ -170,6 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
   
+  // Logout function cải tiến
   const logout = async () => {
     try {
       console.log('Logout - attempting to logout');
@@ -178,27 +187,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await api.get('/auth/logout');
       
       // Clear client-side data
-      deleteCookie('token', { path: '/' });
-      localStorage.removeItem('user');
-      setUser(null);
+      syncAuthState(null);
       
       console.log('Logout - cleared all auth data');
       
-      // Redirect to login page (use direct navigation to ensure clean state)
+      // Redirect to login page
       window.location.href = '/login';
     } catch (error) {
       console.error('Logout failed', error);
       // Still clear client-side data even if server call fails
-      deleteCookie('token', { path: '/' });
-      localStorage.removeItem('user');
-      setUser(null);
+      syncAuthState(null);
       
       // Redirect to login page
       window.location.href = '/login';
     }
   };
 
-  // Check if cookie token exists for accurate authentication state
+  // Kiểm tra token cookie để xác định trạng thái xác thực chính xác
   const cookieToken = getCookie('token');
   const isAuthenticated = !!cookieToken && !!user;
 
@@ -209,7 +214,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login, 
       register, 
       logout, 
-      isAuthenticated
+      isAuthenticated,
+      refreshUserData
     }}>
       {children}
     </AuthContext.Provider>
