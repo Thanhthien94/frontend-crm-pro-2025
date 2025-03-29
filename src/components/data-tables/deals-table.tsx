@@ -114,7 +114,7 @@ export function DealsTable({
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
           <Input
-            placeholder="Search deals..."
+            placeholder="Tìm kiếm giao dịch..."
             value={filters.search}
             onChange={(e) => handleFilterChange('search', e.target.value)}
           />
@@ -124,16 +124,16 @@ export function DealsTable({
           onValueChange={(value) => handleFilterChange('stage', value)}
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by stage" />
+            <SelectValue placeholder="Lọc theo giai đoạn" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Stages</SelectItem>
-            <SelectItem value="lead">Lead</SelectItem>
-            <SelectItem value="qualified">Qualified</SelectItem>
-            <SelectItem value="proposal">Proposal</SelectItem>
-            <SelectItem value="negotiation">Negotiation</SelectItem>
-            <SelectItem value="closed-won">Closed (Won)</SelectItem>
-            <SelectItem value="closed-lost">Closed (Lost)</SelectItem>
+            <SelectItem value="all">Tất cả giai đoạn</SelectItem>
+            <SelectItem value="lead">Tiềm năng</SelectItem>
+            <SelectItem value="qualified">Đủ điều kiện</SelectItem>
+            <SelectItem value="proposal">Đề xuất</SelectItem>
+            <SelectItem value="negotiation">Đàm phán</SelectItem>
+            <SelectItem value="closed-won">Đã đóng (Thành công)</SelectItem>
+            <SelectItem value="closed-lost">Đã đóng (Thất bại)</SelectItem>
           </SelectContent>
         </Select>
         <Select
@@ -141,12 +141,12 @@ export function DealsTable({
           onValueChange={(value) => handleFilterChange('status', value)}
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status" />
+            <SelectValue placeholder="Lọc theo trạng thái" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
+            <SelectItem value="all">Tất cả trạng thái</SelectItem>
+            <SelectItem value="active">Đang hoạt động</SelectItem>
+            <SelectItem value="inactive">Không hoạt động</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -155,13 +155,13 @@ export function DealsTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Deal Title</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Value</TableHead>
-              <TableHead>Stage</TableHead>
-              <TableHead>Expected Close</TableHead>
-              <TableHead>Assigned To</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>Tiêu đề giao dịch</TableHead>
+              <TableHead>Khách hàng</TableHead>
+              <TableHead>Giá trị</TableHead>
+              <TableHead>Giai đoạn</TableHead>
+              <TableHead>Ngày dự kiến đóng</TableHead>
+              <TableHead>Người phụ trách</TableHead>
+              <TableHead className="text-right">Thao tác</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -170,14 +170,14 @@ export function DealsTable({
                 <TableCell colSpan={7} className="h-24 text-center">
                   <div className="flex justify-center items-center">
                     <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
-                    Loading deals...
+                    Đang tải giao dịch...
                   </div>
                 </TableCell>
               </TableRow>
             ) : data.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="h-24 text-center">
-                  No deals found.
+                  Không tìm thấy giao dịch nào.
                 </TableCell>
               </TableRow>
             ) : (
@@ -208,7 +208,7 @@ export function DealsTable({
                     {deal.expectedCloseDate ? formatDate(deal.expectedCloseDate) : 'N/A'}
                   </TableCell>
                   <TableCell>
-                    {deal.assignedTo?.name || 'Unassigned'}
+                    {deal.assignedTo?.name || 'Chưa gán'}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-2">
@@ -242,36 +242,7 @@ export function DealsTable({
         </Table>
       </div>
 
-      {pageCount > 1 && (
-        <div className="flex justify-center space-x-2">
-          <Button
-            variant="outline"
-            onClick={() => onPageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-          >
-            Trang trước
-          </Button>
-          <div className="flex items-center space-x-2">
-            {Array.from({ length: pageCount }, (_, i) => i + 1).map((page) => (
-              <Button
-                key={page}
-                variant={currentPage === page ? 'default' : 'outline'}
-                className="w-8 h-8 p-0"
-                onClick={() => onPageChange(page)}
-              >
-                {page}
-              </Button>
-            ))}
-          </div>
-          <Button
-            variant="outline"
-            onClick={() => onPageChange(currentPage + 1)}
-            disabled={currentPage === pageCount}
-          >
-            Trang sau
-          </Button>
-        </div>
-      )}
+      {/* Loại bỏ phân trang ở đây vì sẽ sử dụng phân trang ở cấp page */}
 
       <AlertDialog 
         open={isDeleteDialogOpen} 
@@ -279,13 +250,13 @@ export function DealsTable({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Bạn có chắc chắn không?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this deal. This action cannot be undone.
+              Hành động này sẽ xóa vĩnh viễn giao dịch. Bạn không thể hoàn tác việc này.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>Hủy bỏ</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 hover:bg-red-700"
               onClick={confirmDelete}
@@ -294,10 +265,10 @@ export function DealsTable({
               {isDeleting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deleting...
+                  Đang xóa...
                 </>
               ) : (
-                'Delete'
+                'Xóa'
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -43,8 +43,8 @@ export default function CustomerDetailPage() {
         setCustomer(response.data.data);
       } catch (error: any) {
         console.error("Failed to fetch customer:", error);
-        toast.error("Failed to fetch customer details", {
-          description: error.response?.data?.error || "An error occurred",
+        toast.error("Không thể lấy thông tin khách hàng", {
+          description: error.response?.data?.error || "Đã xảy ra lỗi",
         });
         router.push("/customers");
       } finally {
@@ -58,21 +58,21 @@ export default function CustomerDetailPage() {
   const handleDelete = async () => {
     try {
       await api.delete(`/customers/${id}`);
-      toast.success('Customer deleted successfully');
+      toast.success('Đã xóa khách hàng thành công');
       router.push("/customers");
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to delete customer");
+      toast.error(error.response?.data?.error || "Không thể xóa khách hàng");
     }
   };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-full">Loading...</div>
+      <div className="flex justify-center items-center h-full">Đang tải...</div>
     );
   }
 
   if (!customer) {
-    return <div>Customer not found</div>;
+    return <div>Không tìm thấy khách hàng</div>;
   }
 
   return (
@@ -80,13 +80,13 @@ export default function CustomerDetailPage() {
       <div className="flex justify-between items-center">
         <Button variant="outline" onClick={() => router.push("/customers")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Customers
+          Quay lại danh sách
         </Button>
         <div className="flex space-x-2">
           {checkPermission("customers", "update") && (
             <Button onClick={() => router.push(`/customers/${id}/edit`)}>
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              Chỉnh sửa
             </Button>
           )}
           {checkPermission("customers", "delete") && (
@@ -95,7 +95,7 @@ export default function CustomerDetailPage() {
               onClick={() => setIsDeleteDialogOpen(true)}
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete
+              Xóa
             </Button>
           )}
         </div>
@@ -111,48 +111,48 @@ export default function CustomerDetailPage() {
             <CardContent>
               <Tabs defaultValue="details">
                 <TabsList>
-                  <TabsTrigger value="details">Details</TabsTrigger>
-                  <TabsTrigger value="deals">Deals</TabsTrigger>
-                  <TabsTrigger value="tasks">Tasks</TabsTrigger>
+                  <TabsTrigger value="details">Chi tiết</TabsTrigger>
+                  <TabsTrigger value="deals">Giao dịch</TabsTrigger>
+                  <TabsTrigger value="tasks">Công việc</TabsTrigger>
                 </TabsList>
                 <TabsContent value="details" className="space-y-4">
                   <div className="grid grid-cols-2 gap-4 py-4">
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Phone</p>
+                      <p className="text-sm font-medium text-gray-500">Điện thoại</p>
                       <p>{customer.phone || "N/A"}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-500">
-                        Company
+                        Công ty
                       </p>
                       <p>{customer.company || "N/A"}</p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Type</p>
-                      <p className="capitalize">{customer.type}</p>
+                      <p className="text-sm font-medium text-gray-500">Loại</p>
+                      <p className="capitalize">{customer.type === 'customer' ? 'Khách hàng' : 'Tiềm năng'}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-500">
-                        Status
+                        Trạng thái
                       </p>
-                      <p className="capitalize">{customer.status}</p>
+                      <p className="capitalize">{customer.status === 'active' ? 'Đang hoạt động' : 'Không hoạt động'}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-500">
-                        Source
+                        Nguồn
                       </p>
                       <p className="capitalize">{customer.source || "N/A"}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-500">
-                        Created
+                        Ngày tạo
                       </p>
                       <p>{formatDate(customer.createdAt)}</p>
                     </div>
                   </div>
                   {customer.notes && (
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Notes</p>
+                      <p className="text-sm font-medium text-gray-500">Ghi chú</p>
                       <p className="whitespace-pre-line mt-1">
                         {customer.notes}
                       </p>
@@ -162,31 +162,30 @@ export default function CustomerDetailPage() {
                 <TabsContent value="deals">
                   <div className="p-4 text-center">
                     <DollarSign className="h-12 w-12 mx-auto text-gray-300" />
-                    <h3 className="mt-2 text-lg font-semibold">No deals yet</h3>
+                    <h3 className="mt-2 text-lg font-semibold">Chưa có giao dịch nào</h3>
                     <p className="text-sm text-gray-500">
-                      Create a new deal for this customer to track
-                      opportunities.
+                      Tạo giao dịch mới cho khách hàng này để theo dõi cơ hội.
                     </p>
                     <Button
                       className="mt-4"
                       onClick={() => router.push("/deals/new")}
                     >
-                      Create Deal
+                      Tạo giao dịch
                     </Button>
                   </div>
                 </TabsContent>
                 <TabsContent value="tasks">
                   <div className="p-4 text-center">
                     <CheckSquare className="h-12 w-12 mx-auto text-gray-300" />
-                    <h3 className="mt-2 text-lg font-semibold">No tasks yet</h3>
+                    <h3 className="mt-2 text-lg font-semibold">Chưa có công việc nào</h3>
                     <p className="text-sm text-gray-500">
-                      Create a new task related to this customer.
+                      Tạo công việc mới liên quan đến khách hàng này.
                     </p>
                     <Button
                       className="mt-4"
                       onClick={() => router.push("/tasks/new")}
                     >
-                      Create Task
+                      Tạo công việc
                     </Button>
                   </div>
                 </TabsContent>
@@ -197,7 +196,7 @@ export default function CustomerDetailPage() {
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>Assigned To</CardTitle>
+              <CardTitle>Người phụ trách</CardTitle>
             </CardHeader>
             <CardContent>
               {customer.assignedTo ? (
@@ -215,7 +214,7 @@ export default function CustomerDetailPage() {
                   </div>
                 </div>
               ) : (
-                <p className="text-muted-foreground">Not assigned to anyone</p>
+                <p className="text-muted-foreground">Chưa phân công cho ai</p>
               )}
 
               {checkPermission("customers", "update") && (
@@ -224,7 +223,7 @@ export default function CustomerDetailPage() {
                   className="w-full mt-4"
                   onClick={() => router.push(`/customers/${id}/edit`)}
                 >
-                  Change Assignment
+                  Thay đổi phân công
                 </Button>
               )}
             </CardContent>
@@ -239,19 +238,18 @@ export default function CustomerDetailPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Bạn có chắc chắn không?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the customer {customer.name}. This
-              action cannot be undone.
+              Hành động này sẽ xóa vĩnh viễn khách hàng {customer.name}. Bạn không thể hoàn tác việc này.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Hủy bỏ</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 hover:bg-red-700"
               onClick={handleDelete}
             >
-              Delete
+              Xóa
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

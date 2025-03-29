@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { DealFormData } from '@/types/deal';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import DealForm from '@/components/forms/deal-form';
 import api from '@/lib/api';
 import { usePermission } from '@/hooks/use-permission';
@@ -20,7 +20,7 @@ export default function NewDealPage() {
   useEffect(() => {
     // Check permission
     if (!checkPermission('deals', 'create')) {
-      toast.error('You do not have permission to create deals');
+      toast.error('Bạn không có quyền tạo giao dịch');
       router.push('/deals');
     }
   }, [router, checkPermission]);
@@ -32,10 +32,10 @@ export default function NewDealPage() {
       const apiData = mapFormDataToApiData(data);
       
       const response = await api.post('/deals', apiData);
-      toast.success('Deal created successfully');
+      toast.success('Tạo giao dịch thành công');
       router.push(`/deals/${response.data.data._id}`);
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to create deal');
+      toast.error(error.response?.data?.error || 'Không thể tạo giao dịch');
     } finally {
       setIsSubmitting(false);
     }
@@ -46,14 +46,14 @@ export default function NewDealPage() {
       <div className="flex items-center">
         <Button variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
+          Quay lại
         </Button>
-        <h1 className="ml-4 text-3xl font-bold tracking-tight">Create New Deal</h1>
+        <h1 className="ml-4 text-3xl font-bold tracking-tight">Tạo giao dịch mới</h1>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Deal Information</CardTitle>
+          <CardTitle>Thông tin giao dịch</CardTitle>
         </CardHeader>
         <CardContent>
           <DealForm

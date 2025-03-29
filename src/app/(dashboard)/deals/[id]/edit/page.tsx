@@ -23,7 +23,7 @@ export default function EditDealPage() {
   useEffect(() => {
     // Check permission
     if (!checkPermission('deals', 'update')) {
-      toast.error('You do not have permission to edit deals');
+      toast.error('Bạn không có quyền chỉnh sửa giao dịch');
       router.push('/deals');
       return;
     }
@@ -34,7 +34,7 @@ export default function EditDealPage() {
         setDeal(response.data.data);
       } catch (error: any) {
         console.error('Failed to fetch deal:', error);
-        toast.error(error.response?.data?.error || 'Failed to fetch deal details');
+        toast.error(error.response?.data?.error || 'Không thể lấy thông tin giao dịch');
         router.push('/deals');
       } finally {
         setLoading(false);
@@ -51,10 +51,10 @@ export default function EditDealPage() {
       const apiData = mapFormDataToApiData(data);
       
       await api.put(`/deals/${id}`, apiData);
-      toast.success('Deal updated successfully');
+      toast.success('Cập nhật giao dịch thành công');
       router.push(`/deals/${id}`);
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to update deal');
+      toast.error(error.response?.data?.error || 'Không thể cập nhật giao dịch');
     } finally {
       setIsSubmitting(false);
     }
@@ -64,13 +64,13 @@ export default function EditDealPage() {
     return (
       <div className="flex justify-center items-center h-full">
         <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
-        <span>Loading deal information...</span>
+        <span>Đang tải thông tin giao dịch...</span>
       </div>
     );
   }
 
   if (!deal) {
-    return <div>Deal not found</div>;
+    return <div>Không tìm thấy giao dịch</div>;
   }
 
   // Chuyển đổi từ API data sang form data (title -> name)
@@ -85,14 +85,14 @@ export default function EditDealPage() {
           disabled={isSubmitting}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
+          Quay lại
         </Button>
-        <h1 className="ml-4 text-3xl font-bold tracking-tight">Edit Deal</h1>
+        <h1 className="ml-4 text-3xl font-bold tracking-tight">Chỉnh sửa giao dịch</h1>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Deal Information</CardTitle>
+          <CardTitle>Thông tin giao dịch</CardTitle>
         </CardHeader>
         <CardContent>
           <DealForm

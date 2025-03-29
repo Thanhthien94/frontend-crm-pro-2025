@@ -5,7 +5,7 @@ import { useCustomers } from '@/hooks/use-customers';
 import { Customer, CustomerFormData } from '@/types/customer';
 import { Button } from '@/components/ui/button';
 import { CustomersTable } from '@/components/data-tables/customers-table';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Search } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
 import CustomerForm from '@/components/forms/customer-form';
 import { usePermission } from '@/hooks/use-permission';
 
@@ -22,11 +34,12 @@ export default function CustomersPage() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [currentFilters, setCurrentFilters] = useState<Record<string, any>>({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('all');
   const { checkPermission } = usePermission();
   
   const {
     customers,
-    loading,
     page,
     totalPages,
     totalCustomers,
@@ -71,41 +84,136 @@ export default function CustomersPage() {
     fetchCustomers(1, filters);
   };
 
+  // Xử lý tìm kiếm
+  const handleSearch = () => {
+    const newFilters = { ...currentFilters };
+    if (searchQuery) {
+      newFilters.search = searchQuery;
+    } else {
+      delete newFilters.search;
+    }
+    setCurrentFilters(newFilters);
+    fetchCustomers(1, newFilters);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+  
+  // Xử lý chuyển tab
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    const newFilters: Record<string, any> = { ...currentFilters };
+    
+    // Xóa các bộ lọc trạng thái cũ
+    delete newFilters.type;
+    delete newFilters.status;
+    
+    // Áp dụng bộ lọc mới dựa trên tab
+    switch (value) {
+      case 'prospect':
+      case 'customer':
+        newFilters.type = value;
+        break;
+      case 'active':
+      case 'inactive':
+        newFilters.status = value;
+        break;
+    }
+    
+    setCurrentFilters(newFilters);
+    fetchCustomers(1, newFilters);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Customers</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Khách hàng</h1>
           <p className="text-muted-foreground">
-            Manage your customers and prospects
+            Quản lý khách hàng và khách hàng tiềm năng
           </p>
         </div>
         {checkPermission('customers', 'create') && (
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
-            Add Customer
+            Thêm khách hàng
           </Button>
         )}
       </div>
 
-      <CustomersTable
-        data={customers}
-        pageCount={totalPages}
-        currentPage={page}
-        onPageChange={changePage}
-        onView={handleViewCustomer}
-        onEdit={checkPermission('customers', 'update') ? handleEditCustomer : () => {}}
-        onDelete={checkPermission('customers', 'delete') ? handleDeleteCustomer : async () => {}}
-        onFilterChange={handleFilterChange}
-      />
+      {/* Khách hàng Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Danh sách khách hàng</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* Tabs và Bộ lọc */}
+          <div className="space-y-4 mb-2">
+            <Tabs defaultValue="all" value={activeTab} onValueChange={handleTabChange}>
+              <TabsList>
+                <TabsTrigger value="all">Tất cả</TabsTrigger>
+                <TabsTrigger value="customer">Khách hàng</TabsTrigger>
+                <TabsTrigger value="prospect">Tiềm năng</TabsTrigger>
+                <TabsTrigger value="active">Đang hoạt động</TabsTrigger>
+                <TabsTrigger value="inactive">Không hoạt động</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+          
+          {/* Bảng khách hàng */}
+          <CustomersTable
+            data={customers}
+            pageCount={totalPages}
+            currentPage={page}
+            onPageChange={changePage}
+            onView={handleViewCustomer}
+            onEdit={checkPermission('customers', 'update') ? handleEditCustomer : () => {}}
+            onDelete={checkPermission('customers', 'delete') ? handleDeleteCustomer : async () => {}}
+            onFilterChange={handleFilterChange}
+          />
+      
+          {/* Phân trang */}
+          {totalPages > 1 && (
+            <div className="flex justify-between items-center mt-4">
+              <div className="text-sm text-muted-foreground">
+                Hiển thị {customers.length} trong tổng số {totalCustomers || customers.length * totalPages} khách hàng
+              </div>
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => changePage(page - 1)}
+                  disabled={page === 1}
+                >
+                  Trang trước
+                </Button>
+                <div className="flex items-center text-sm">
+                  Trang {page} / {totalPages}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => changePage(page + 1)}
+                  disabled={page === totalPages}
+                >
+                  Trang sau
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Create Customer Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Add New Customer</DialogTitle>
+            <DialogTitle>Thêm khách hàng mới</DialogTitle>
             <DialogDescription>
-              Create a new customer or prospect in your CRM.
+              Tạo khách hàng mới hoặc khách hàng tiềm năng trong CRM của bạn.
             </DialogDescription>
           </DialogHeader>
           <CustomerForm
@@ -119,9 +227,9 @@ export default function CustomersPage() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Edit Customer</DialogTitle>
+            <DialogTitle>Chỉnh sửa khách hàng</DialogTitle>
             <DialogDescription>
-              Update customer information.
+              Cập nhật thông tin khách hàng.
             </DialogDescription>
           </DialogHeader>
           {selectedCustomer && (
@@ -138,13 +246,13 @@ export default function CustomersPage() {
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Customer Details</DialogTitle>
+            <DialogTitle>Chi tiết khách hàng</DialogTitle>
           </DialogHeader>
           {selectedCustomer && (
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Name</h3>
+                  <h3 className="text-sm font-medium text-gray-500">Tên</h3>
                   <p>{selectedCustomer.name}</p>
                 </div>
                 <div>
@@ -152,33 +260,33 @@ export default function CustomersPage() {
                   <p>{selectedCustomer.email}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Phone</h3>
+                  <h3 className="text-sm font-medium text-gray-500">Điện thoại</h3>
                   <p>{selectedCustomer.phone || 'N/A'}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Company</h3>
+                  <h3 className="text-sm font-medium text-gray-500">Công ty</h3>
                   <p>{selectedCustomer.company || 'N/A'}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Type</h3>
-                  <p className="capitalize">{selectedCustomer.type}</p>
+                  <h3 className="text-sm font-medium text-gray-500">Loại</h3>
+                  <p className="capitalize">{selectedCustomer.type === 'customer' ? 'Khách hàng' : 'Tiềm năng'}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Status</h3>
-                  <p className="capitalize">{selectedCustomer.status}</p>
+                  <h3 className="text-sm font-medium text-gray-500">Trạng thái</h3>
+                  <p className="capitalize">{selectedCustomer.status === 'active' ? 'Đang hoạt động' : 'Không hoạt động'}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Source</h3>
+                  <h3 className="text-sm font-medium text-gray-500">Nguồn</h3>
                   <p className="capitalize">{selectedCustomer.source || 'N/A'}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Assigned To</h3>
-                  <p>{selectedCustomer.assignedTo?.name || 'Unassigned'}</p>
+                  <h3 className="text-sm font-medium text-gray-500">Người phụ trách</h3>
+                  <p>{selectedCustomer.assignedTo?.name || 'Chưa phân công'}</p>
                 </div>
               </div>
               {selectedCustomer.notes && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Notes</h3>
+                  <h3 className="text-sm font-medium text-gray-500">Ghi chú</h3>
                   <p className="whitespace-pre-line">{selectedCustomer.notes}</p>
                 </div>
               )}
@@ -190,7 +298,7 @@ export default function CustomersPage() {
                       handleEditCustomer(selectedCustomer);
                     }}
                   >
-                    Edit Customer
+                    Chỉnh sửa khách hàng
                   </Button>
                 )}
               </div>

@@ -249,37 +249,6 @@ export function CustomersTable({
         </Table>
       </div>
 
-      {pageCount > 1 && (
-        <div className="flex justify-center space-x-2">
-          <Button
-            variant="outline"
-            onClick={() => onPageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-          >
-            Trang trước
-          </Button>
-          <div className="flex items-center space-x-2">
-            {Array.from({ length: pageCount }, (_, i) => i + 1).map((page) => (
-              <Button
-                key={page}
-                variant={currentPage === page ? 'default' : 'outline'}
-                className="w-8 h-8 p-0"
-                onClick={() => onPageChange(page)}
-              >
-                {page}
-              </Button>
-            ))}
-          </div>
-          <Button
-            variant="outline"
-            onClick={() => onPageChange(currentPage + 1)}
-            disabled={currentPage === pageCount}
-          >
-            Trang sau
-          </Button>
-        </div>
-      )}
-
       <AlertDialog 
         open={isDeleteDialogOpen} 
         onOpenChange={setIsDeleteDialogOpen}

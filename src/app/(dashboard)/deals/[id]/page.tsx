@@ -55,7 +55,7 @@ export default function DealDetailPage() {
         setDeal(response.data.data);
       } catch (error: any) {
         console.error('Failed to fetch deal:', error);
-        toast.error(error.response?.data?.error || 'Failed to fetch deal details');
+        toast.error(error.response?.data?.error || 'Không thể lấy thông tin giao dịch');
         router.push('/deals');
       } finally {
         setLoading(false);
@@ -68,12 +68,12 @@ export default function DealDetailPage() {
   const handleDelete = async () => {
     try {
       await api.delete(`/deals/${id}`);
-      toast.success('Deal deleted successfully', {
-        description: 'The deal has been removed from your records.',
+      toast.success('Đã xóa giao dịch thành công', {
+        description: 'Giao dịch đã được xóa khỏi hệ thống.',
       });
       router.push('/deals');
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to delete deal');
+      toast.error(error.response?.data?.error || 'Không thể xóa giao dịch');
     }
   };
 
@@ -99,11 +99,11 @@ export default function DealDetailPage() {
   };
 
   if (loading) {
-    return <div className="flex justify-center items-center h-full">Loading...</div>;
+    return <div className="flex justify-center items-center h-full">Đang tải...</div>;
   }
 
   if (!deal) {
-    return <div>Deal not found</div>;
+    return <div>Không tìm thấy giao dịch</div>;
   }
 
   return (
@@ -111,19 +111,19 @@ export default function DealDetailPage() {
       <div className="flex justify-between items-center">
         <Button variant="outline" onClick={() => router.push('/deals')}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Deals
+          Quay lại Giao dịch
         </Button>
         <div className="flex space-x-2">
           {checkPermission('deals', 'update') && (
             <Button onClick={() => router.push(`/deals/${id}/edit`)}>
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              Chỉnh sửa
             </Button>
           )}
           {checkPermission('deals', 'delete') && (
             <Button variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete
+              Xóa
             </Button>
           )}
         </div>
@@ -146,7 +146,7 @@ export default function DealDetailPage() {
                     {deal.value.toLocaleString()}
                   </div>
                   {deal.probability !== undefined && (
-                    <CardDescription>{deal.probability}% probability</CardDescription>
+                    <CardDescription>{deal.probability}% khả năng thành công</CardDescription>
                   )}
                 </div>
               </div>
@@ -154,32 +154,32 @@ export default function DealDetailPage() {
             <CardContent>
               <Tabs defaultValue="details">
                 <TabsList>
-                  <TabsTrigger value="details">Details</TabsTrigger>
-                  <TabsTrigger value="tasks">Tasks</TabsTrigger>
-                  <TabsTrigger value="activities">Activities</TabsTrigger>
+                  <TabsTrigger value="details">Chi tiết</TabsTrigger>
+                  <TabsTrigger value="tasks">Công việc</TabsTrigger>
+                  <TabsTrigger value="activities">Hoạt động</TabsTrigger>
                 </TabsList>
                 <TabsContent value="details" className="space-y-4">
                   <div className="grid grid-cols-2 gap-4 py-4">
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Expected Close Date</p>
+                      <p className="text-sm font-medium text-gray-500">Ngày dự kiến đóng</p>
                       <p>{deal.expectedCloseDate ? formatDate(deal.expectedCloseDate) : 'N/A'}</p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Status</p>
+                      <p className="text-sm font-medium text-gray-500">Trạng thái</p>
                       <p className="capitalize">{deal.status}</p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Created</p>
+                      <p className="text-sm font-medium text-gray-500">Ngày tạo</p>
                       <p>{formatDate(deal.createdAt)}</p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Last Updated</p>
+                      <p className="text-sm font-medium text-gray-500">Cập nhật lần cuối</p>
                       <p>{formatDate(deal.updatedAt)}</p>
                     </div>
                   </div>
                   {deal.notes && (
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Notes</p>
+                      <p className="text-sm font-medium text-gray-500">Ghi chú</p>
                       <p className="whitespace-pre-line mt-1">{deal.notes}</p>
                     </div>
                   )}
@@ -187,21 +187,21 @@ export default function DealDetailPage() {
                 <TabsContent value="tasks">
                   <div className="p-4 text-center">
                     <Calendar className="h-12 w-12 mx-auto text-gray-300" />
-                    <h3 className="mt-2 text-lg font-semibold">No tasks yet</h3>
+                    <h3 className="mt-2 text-lg font-semibold">Chưa có công việc nào</h3>
                     <p className="text-sm text-gray-500">
-                      Create a new task related to this deal.
+                      Tạo một công việc mới liên quan đến giao dịch này.
                     </p>
                     <Button className="mt-4" onClick={() => router.push('/tasks/new')}>
-                      Create Task
+                      Tạo công việc
                     </Button>
                   </div>
                 </TabsContent>
                 <TabsContent value="activities">
                   <div className="p-4 text-center">
                     <User className="h-12 w-12 mx-auto text-gray-300" />
-                    <h3 className="mt-2 text-lg font-semibold">No activities yet</h3>
+                    <h3 className="mt-2 text-lg font-semibold">Chưa có hoạt động nào</h3>
                     <p className="text-sm text-gray-500">
-                      Activities related to this deal will appear here.
+                      Các hoạt động liên quan đến giao dịch này sẽ xuất hiện ở đây.
                     </p>
                   </div>
                 </TabsContent>
@@ -212,7 +212,7 @@ export default function DealDetailPage() {
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>Customer</CardTitle>
+              <CardTitle>Khách hàng</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -228,7 +228,7 @@ export default function DealDetailPage() {
                   className="w-full"
                   onClick={() => router.push(`/customers/${deal.customer._id}`)}
                 >
-                  View Customer
+                  Xem khách hàng
                 </Button>
               </div>
             </CardContent>
@@ -236,7 +236,7 @@ export default function DealDetailPage() {
           
           <Card className="mt-4">
             <CardHeader>
-              <CardTitle>Assigned To</CardTitle>
+              <CardTitle>Người phụ trách</CardTitle>
             </CardHeader>
             <CardContent>
               {deal.assignedTo ? (
@@ -252,12 +252,12 @@ export default function DealDetailPage() {
                   </div>
                 </div>
               ) : (
-                <p className="text-muted-foreground">Not assigned to anyone</p>
+                <p className="text-muted-foreground">Chưa phân công cho ai</p>
               )}
               
               {checkPermission('deals', 'update') && (
                 <Button variant="outline" className="w-full mt-4" onClick={() => router.push(`/deals/${id}/edit`)}>
-                  Change Assignment
+                  Thay đổi phân công
                 </Button>
               )}
             </CardContent>
@@ -269,19 +269,18 @@ export default function DealDetailPage() {
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Bạn có chắc chắn không?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the deal {deal.title}. This action
-              cannot be undone.
+              Hành động này sẽ xóa vĩnh viễn giao dịch {deal.title}. Bạn không thể hoàn tác việc này.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Hủy bỏ</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 hover:bg-red-700"
               onClick={handleDelete}
             >
-              Delete
+              Xóa
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

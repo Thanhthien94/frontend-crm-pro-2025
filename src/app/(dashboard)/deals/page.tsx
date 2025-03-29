@@ -5,7 +5,7 @@ import { useDeals } from '@/hooks/use-deals';
 import { Deal, DealFormData } from '@/types/deal';
 import { Button } from '@/components/ui/button';
 import { DealsTable } from '@/components/data-tables/deals-table';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Search } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
 import DealForm from '@/components/forms/deal-form';
 import { usePermission } from '@/hooks/use-permission';
 import { useRouter } from 'next/navigation';
@@ -22,6 +34,8 @@ export default function DealsPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
   const [currentFilters, setCurrentFilters] = useState<Record<string, any>>({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('all');
   const { checkPermission } = usePermission();
   const router = useRouter();
   
@@ -69,43 +83,154 @@ export default function DealsPage() {
     setCurrentFilters(filters);
     fetchDeals(1, filters);
   };
+  
+  // Xử lý tìm kiếm
+  const handleSearch = () => {
+    const newFilters = { ...currentFilters };
+    if (searchQuery) {
+      newFilters.search = searchQuery;
+    } else {
+      delete newFilters.search;
+    }
+    setCurrentFilters(newFilters);
+    fetchDeals(1, newFilters);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+  
+  // Xử lý chuyển tab
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    const newFilters: Record<string, any> = { ...currentFilters };
+    
+    // Xóa các bộ lọc trạng thái cũ
+    delete newFilters.stage;
+    
+    // Áp dụng bộ lọc mới dựa trên tab
+    switch (value) {
+      case 'lead':
+      case 'qualified':
+      case 'proposal':
+      case 'negotiation':
+      case 'closed-won':
+      case 'closed-lost':
+        newFilters.stage = value;
+        break;
+    }
+    
+    setCurrentFilters(newFilters);
+    fetchDeals(1, newFilters);
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Deals</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Giao Dịch</h1>
           <p className="text-muted-foreground">
-            Manage your sales pipeline and track opportunities
+            Quản lý đường dẫn bán hàng và theo dõi cơ hội kinh doanh
           </p>
         </div>
         {checkPermission('deals', 'create') && (
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
-            Add Deal
+            Thêm Giao Dịch
           </Button>
         )}
       </div>
-
-      <DealsTable
-        data={deals}
-        pageCount={totalPages}
-        currentPage={page}
-        onPageChange={changePage}
-        onView={handleViewDeal}
-        onEdit={checkPermission('deals', 'update') ? handleEditDeal : () => {}}
-        onDelete={checkPermission('deals', 'delete') ? handleDeleteDeal : async () => {}}
-        onFilterChange={handleFilterChange}
-        loading={loading}
-      />
+      
+      {/* Giao dịch Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Danh sách giao dịch</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* Tabs và Bộ lọc */}
+          <div className="space-y-4">
+            <Tabs defaultValue="all" value={activeTab} onValueChange={handleTabChange}>
+              <TabsList>
+                <TabsTrigger value="all">Tất cả</TabsTrigger>
+                <TabsTrigger value="lead">Tiềm năng</TabsTrigger>
+                <TabsTrigger value="qualified">Đủ điều kiện</TabsTrigger>
+                <TabsTrigger value="proposal">Đề xuất</TabsTrigger>
+                <TabsTrigger value="negotiation">Đàm phán</TabsTrigger>
+                <TabsTrigger value="closed-won">Thành công</TabsTrigger>
+                <TabsTrigger value="closed-lost">Thất bại</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          
+            <div className="flex flex-col sm:flex-row gap-4 mb-4">
+              <div className="flex gap-2 flex-1">
+                <Input
+                  placeholder="Tìm kiếm giao dịch..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="max-w-xs"
+                />
+                <Button variant="outline" onClick={handleSearch}>
+                  <Search className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Bảng giao dịch */}
+          <DealsTable
+            data={deals}
+            pageCount={totalPages}
+            currentPage={page}
+            onPageChange={changePage}
+            onView={handleViewDeal}
+            onEdit={checkPermission('deals', 'update') ? handleEditDeal : () => {}}
+            onDelete={checkPermission('deals', 'delete') ? handleDeleteDeal : async () => {}}
+            onFilterChange={handleFilterChange}
+            loading={loading}
+          />
+      
+          {/* Phân trang tương tự TasksPage */}
+          {totalPages > 1 && (
+            <div className="flex justify-between items-center mt-4">
+              <div className="text-sm text-muted-foreground">
+                Hiển thị {deals.length} trong tổng số {deals.length * totalPages} giao dịch
+              </div>
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => changePage(page - 1)}
+                  disabled={page === 1}
+                >
+                  Trang trước
+                </Button>
+                <div className="flex items-center text-sm">
+                  Trang {page} / {totalPages}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => changePage(page + 1)}
+                  disabled={page === totalPages}
+                >
+                  Trang sau
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Create Deal Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Add New Deal</DialogTitle>
+            <DialogTitle>Thêm Giao Dịch Mới</DialogTitle>
             <DialogDescription>
-              Create a new sales opportunity in your pipeline.
+              Tạo cơ hội bán hàng mới trong đường dẫn của bạn.
             </DialogDescription>
           </DialogHeader>
           <DealForm
@@ -119,9 +244,9 @@ export default function DealsPage() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Edit Deal</DialogTitle>
+            <DialogTitle>Chỉnh Sửa Giao Dịch</DialogTitle>
             <DialogDescription>
-              Update deal information.
+              Cập nhật thông tin giao dịch.
             </DialogDescription>
           </DialogHeader>
           {selectedDeal && (
