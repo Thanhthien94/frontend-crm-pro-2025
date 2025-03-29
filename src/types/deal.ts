@@ -1,8 +1,8 @@
 export interface Deal {
   _id: string;
-  title: string;  // Thay đổi name -> title
+  title: string;  // API trả về field title
   value: number;
-  currency: string; // Thêm trường này
+  currency: string;
   stage: 'lead' | 'qualified' | 'proposal' | 'negotiation' | 'closed-won' | 'closed-lost';
   expectedCloseDate?: string;
   customer: {
@@ -39,7 +39,7 @@ export interface Deal {
 }
 
 export interface DealFormData {
-  title: string;  // Thay đổi name -> title
+  name: string;  // Form sử dụng name nhưng sẽ được map sang title khi gửi lên API
   value: number;
   stage: string;
   expectedCloseDate?: string;

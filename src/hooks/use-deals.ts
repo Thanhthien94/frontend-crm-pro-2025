@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import api from "@/lib/api";
 import { Deal, DealFormData } from "@/types/deal";
 import { toast } from "sonner";
+import { mapFormDataToApiData } from "@/utils/deals-mapper";
 
 interface UseDealsProps {
   initialPage?: number;
@@ -40,11 +41,7 @@ export function useDeals({
       setPage(page);
     } catch (err: any) {
       setError(err.response?.data?.error || "Failed to fetch deals");
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: err.response?.data?.error || "Failed to fetch deals",
-      });
+      toast.error(err.response?.data?.error || "Failed to fetch deals");
     } finally {
       setLoading(false);
     }
@@ -55,39 +52,41 @@ export function useDeals({
       const response = await api.get(`/deals/${id}`);
       return response.data.data;
     } catch (err: any) {
-      toast("Error", {
-        description: err.response?.data?.error || "Failed to fetch deal",
-      });
+      toast.error(err.response?.data?.error || "Failed to fetch deal");
       throw err;
     }
   };
 
   const createDeal = async (data: DealFormData) => {
     try {
-      const response = await api.post("/deals", data);
-      toast("Success", {
-        description: "Deal created successfully",
-      });
+      // Sử dụng hàm mapper để chuyển đổi dữ liệu
+      const apiData = mapFormDataToApiData(data);
+      
+      const response = await api.post("/deals", apiData);
+      toast.success("Deal created successfully");
       return response.data.data;
     } catch (err: any) {
-      toast("Error", {
-        description: err.response?.data?.error || "Failed to create deal",
-      });
+      toast.error(err.response?.data?.error || "Failed to create deal");
       throw err;
     }
   };
 
   const updateDeal = async (id: string, data: Partial<DealFormData>) => {
     try {
-      const response = await api.put(`/deals/${id}`, data);
-      toast("Success", {
-        description: "Deal updated successfully",
-      });
+      // Chuyển đổi từ form data sang API data
+      const apiData: any = { ...data };
+      
+      if (data.name !== undefined) {
+        // Đổi name thành title và xóa name
+        apiData.title = data.name;
+        delete apiData.name;
+      }
+      
+      const response = await api.put(`/deals/${id}`, apiData);
+      toast.success("Deal updated successfully");
       return response.data.data;
     } catch (err: any) {
-      toast("Error", {
-        description: err.response?.data?.error || "Failed to update deal",
-      });
+      toast.error(err.response?.data?.error || "Failed to update deal");
       throw err;
     }
   };
@@ -95,14 +94,10 @@ export function useDeals({
   const deleteDeal = async (id: string) => {
     try {
       await api.delete(`/deals/${id}`);
-      toast("Success", {
-        description: "Deal deleted successfully",
-      });
+      toast.success("Deal deleted successfully");
       return true;
     } catch (err: any) {
-      toast("Error", {
-        description: err.response?.data?.error || "Failed to delete deal",
-      });
+      toast.error(err.response?.data?.error || "Failed to delete deal");
       throw err;
     }
   };

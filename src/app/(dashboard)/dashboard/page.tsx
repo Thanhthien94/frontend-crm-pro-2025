@@ -20,7 +20,7 @@ import {
   PlusCircle 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import api, { API_URL } from "@/lib/api";
+import api from "@/lib/api";
 
 interface DashboardStats {
   customers?: {

@@ -30,7 +30,6 @@ export default function DealsPage() {
     loading,
     page,
     totalPages,
-    totalDeals,
     fetchDeals,
     createDeal,
     updateDeal,
@@ -97,6 +96,7 @@ export default function DealsPage() {
         onEdit={checkPermission('deals', 'update') ? handleEditDeal : () => {}}
         onDelete={checkPermission('deals', 'delete') ? handleDeleteDeal : async () => {}}
         onFilterChange={handleFilterChange}
+        loading={loading}
       />
 
       {/* Create Deal Dialog */}
@@ -126,7 +126,7 @@ export default function DealsPage() {
           </DialogHeader>
           {selectedDeal && (
             <DealForm
-              deal={selectedDeal}
+              deal={{...selectedDeal, title: selectedDeal.title}}
               onSubmit={handleEditSubmit}
               onCancel={() => setIsEditDialogOpen(false)}
             />

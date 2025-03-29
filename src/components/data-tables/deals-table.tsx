@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { DollarSign, Edit, Eye, Trash } from 'lucide-react';
+import { DollarSign, Edit, Eye, Trash, Loader2 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import {
   AlertDialog,
@@ -36,6 +36,7 @@ interface DealsTableProps {
   data: Deal[];
   currentPage: number;
   pageCount: number;
+  loading: boolean;
   onPageChange: (page: number) => void;
   onView: (deal: Deal) => void;
   onEdit: (deal: Deal) => void;
@@ -47,6 +48,7 @@ export function DealsTable({
   data,
   currentPage,
   pageCount,
+  loading,
   onPageChange,
   onView,
   onEdit,
@@ -60,6 +62,7 @@ export function DealsTable({
   });
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [dealToDelete, setDealToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleFilterChange = (key: string, value: string) => {
     const newFilters = { ...filters, [key]: value };
@@ -67,16 +70,21 @@ export function DealsTable({
     onFilterChange(newFilters);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: string) => {
     setDealToDelete(id);
     setIsDeleteDialogOpen(true);
   };
 
   const confirmDelete = async () => {
     if (dealToDelete) {
-      await onDelete(dealToDelete);
-      setIsDeleteDialogOpen(false);
-      setDealToDelete(null);
+      setIsDeleting(true);
+      try {
+        await onDelete(dealToDelete);
+      } finally {
+        setIsDeleting(false);
+        setIsDeleteDialogOpen(false);
+        setDealToDelete(null);
+      }
     }
   };
 
@@ -157,7 +165,16 @@ export function DealsTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.length === 0 ? (
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="h-24 text-center">
+                  <div className="flex justify-center items-center">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
+                    Loading deals...
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : data.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="h-24 text-center">
                   No deals found.
@@ -268,12 +285,20 @@ export function DealsTable({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 hover:bg-red-700"
               onClick={confirmDelete}
+              disabled={isDeleting}
             >
-              Delete
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

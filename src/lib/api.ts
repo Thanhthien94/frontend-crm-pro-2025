@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getCookie, deleteCookie } from 'cookies-next';
+import { getCookie, deleteCookie, getCookies } from 'cookies-next';
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
 
@@ -20,7 +20,7 @@ const hasValidToken = () => {
   try {
     const parts = token.toString().split('.');
     return parts.length === 3;
-  } catch (e) {
+  } catch {
     return false;
   }
 };
@@ -32,6 +32,7 @@ api.interceptors.request.use(
     // This is just for client-side API calls that might need the token in headers
     const token = getCookie('token');
     if (token) {
+      console.log('token exists, adding to headers: ', token);
       config.headers.Authorization = `Bearer ${token}`;
     }
     

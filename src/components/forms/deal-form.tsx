@@ -25,9 +25,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
 import api from '@/lib/api';
+import { mapApiDataToFormData } from '@/utils/deals-mapper';
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
+  name: z.string().min(2, { message: 'Title must be at least 2 characters' }),
   value: z.coerce.number().min(0, { message: 'Value must be a positive number' }),
   stage: z.string(),
   expectedCloseDate: z.string().optional(),
@@ -40,33 +41,65 @@ const formSchema = z.object({
 
 interface DealFormProps {
   deal?: Deal;
+  initialFormData?: DealFormData & { name: string };
   onSubmit: (data: DealFormData) => Promise<void>;
   onCancel: () => void;
+  isSubmitting?: boolean;
 }
 
-export default function DealForm({ deal, onSubmit, onCancel }: DealFormProps) {
+export default function DealForm({ 
+  deal, 
+  initialFormData, 
+  onSubmit, 
+  onCancel, 
+  isSubmitting = false 
+}: DealFormProps) {
   const [loading, setLoading] = useState(false);
   const [customers, setCustomers] = useState<{ id: string; name: string }[]>([]);
   const [users, setUsers] = useState<{ id: string; name: string }[]>([]);
 
+  // Tạo defaultValues từ initialFormData hoặc từ deal
+  const getDefaultValues = () => {
+    if (initialFormData) {
+      return initialFormData;
+    }
+    
+    if (deal) {
+      return {
+        name: deal.title,
+        value: deal.value,
+        stage: deal.stage,
+        expectedCloseDate: deal.expectedCloseDate ? new Date(deal.expectedCloseDate).toISOString().split('T')[0] : '',
+        customer: deal.customer?._id || '',
+        assignedTo: deal.assignedTo?._id || '',
+        notes: deal.notes || '',
+        probability: deal.probability || 0,
+        status: deal.status || 'active',
+      };
+    }
+    
+    return {
+      name: '',
+      value: 0,
+      stage: 'lead',
+      expectedCloseDate: '',
+      customer: '',
+      assignedTo: '',
+      notes: '',
+      probability: 0,
+      status: 'active',
+    };
+  };
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: deal?.name || '',
-      value: deal?.value || 0,
-      stage: deal?.stage || 'lead',
-      expectedCloseDate: deal?.expectedCloseDate ? new Date(deal.expectedCloseDate).toISOString().split('T')[0] : '',
-      customer: deal?.customer?._id || '',
-      assignedTo: deal?.assignedTo?._id || '',
-      notes: deal?.notes || '',
-      probability: deal?.probability || 0,
-      status: deal?.status || 'active',
-    },
+    defaultValues: getDefaultValues(),
   });
 
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
+        setLoading(true);
         const response = await api.get('/customers?limit=100');
         setCustomers(response.data.data.map((customer: any) => ({
           id: customer._id,
@@ -74,6 +107,8 @@ export default function DealForm({ deal, onSubmit, onCancel }: DealFormProps) {
         })));
       } catch (error) {
         console.error('Failed to fetch customers:', error);
+      } finally {
+        setLoading(false);
       }
     };
     
@@ -94,11 +129,10 @@ export default function DealForm({ deal, onSubmit, onCancel }: DealFormProps) {
   }, []);
 
   async function handleSubmit(values: z.infer<typeof formSchema>) {
-    setLoading(true);
     try {
       await onSubmit(values as DealFormData);
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error('Error in form submission:', error);
     }
   }
 
@@ -111,7 +145,7 @@ export default function DealForm({ deal, onSubmit, onCancel }: DealFormProps) {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Deal Name*</FormLabel>
+                <FormLabel>Deal Title*</FormLabel>
                 <FormControl>
                   <Input placeholder="E.g. Enterprise License" {...field} />
                 </FormControl>
@@ -182,10 +216,18 @@ export default function DealForm({ deal, onSubmit, onCancel }: DealFormProps) {
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  disabled={loading}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select customer" />
+                      {loading ? (
+                        <div className="flex items-center">
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <span>Loading customers...</span>
+                        </div>
+                      ) : (
+                        <SelectValue placeholder="Select customer" />
+                      )}
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -216,7 +258,7 @@ export default function DealForm({ deal, onSubmit, onCancel }: DealFormProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Unassigned</SelectItem>
+                    {/* <SelectItem value="unassigned">Unassigned</SelectItem> */}
                     {users.map((user) => (
                       <SelectItem key={user.id} value={user.id}>
                         {user.name}
@@ -296,14 +338,15 @@ export default function DealForm({ deal, onSubmit, onCancel }: DealFormProps) {
             variant="outline" 
             type="button" 
             onClick={onCancel}
+            disabled={isSubmitting}
           >
             Cancel
           </Button>
           <Button 
             type="submit" 
-            disabled={loading}
+            disabled={isSubmitting || loading}
           >
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {deal ? 'Update Deal' : 'Create Deal'}
           </Button>
         </div>

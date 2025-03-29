@@ -26,7 +26,7 @@ import {
   Calendar
 } from 'lucide-react';
 import api from '@/lib/api';
-import {toast} from 'sonner';
+import { toast } from 'sonner';
 import { usePermission } from '@/hooks/use-permission';
 import { formatDate } from '@/lib/utils';
 import {
@@ -135,7 +135,7 @@ export default function DealDetailPage() {
             <CardHeader>
               <div className="flex justify-between">
                 <div>
-                  <CardTitle className="text-2xl">{deal.name}</CardTitle>
+                  <CardTitle className="text-2xl">{deal.title}</CardTitle>
                   <CardDescription>
                     {renderStageBadge(deal.stage)}
                   </CardDescription>
@@ -271,7 +271,7 @@ export default function DealDetailPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the deal {deal.name}. This action
+              This will permanently delete the deal {deal.title}. This action
               cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>

@@ -31,15 +31,15 @@ export function debugAuthState() {
   
   // Check user in localStorage
   const userStr = localStorage.getItem('user');
-  console.log('User in localStorage:', !!userStr);
-  if (userStr) {
-    try {
-      const user = JSON.parse(userStr);
-      console.log('User data:', user);
-    } catch (e) {
-      console.log('Could not parse user data');
-    }
-  }
+  // console.log('User in localStorage:', !!userStr);
+  // if (userStr) {
+  //   try {
+  //     const user = JSON.parse(userStr);
+  //     console.log('User data:', user);
+  //   } catch {
+  //     console.log('Could not parse user data');
+  //   }
+  // }
   
   console.groupEnd();
   

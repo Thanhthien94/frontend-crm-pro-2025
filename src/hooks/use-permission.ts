@@ -12,7 +12,7 @@ export function usePermission() {
     if (!user) {
       // Thêm log để debug
       console.warn('checkPermission called without user data');
-      return true; // Tạm thời cho phép tất cả để hiển thị menu
+      return false;
     }
     
     // Admin has all permissions
