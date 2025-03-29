@@ -85,13 +85,20 @@ export default function TaskDetailPage() {
 
   const handleComplete = async () => {
     try {
-      await api.patch(`/tasks/${id}`, { status: 'completed' });
+      await api.patch(`/tasks/${id}`, { 
+        status: 'completed',
+        completedDate: new Date().toISOString()
+      });
       toast.success('Đã hoàn thành công việc');
       
       // Cập nhật trạng thái task trong state
       setTask(prev => {
         if (!prev) return null;
-        return { ...prev, status: 'completed' };
+        return { 
+          ...prev, 
+          status: 'completed',
+          completedDate: new Date().toISOString()
+        };
       });
       
       setIsCompleteDialogOpen(false);
@@ -115,10 +122,10 @@ export default function TaskDetailPage() {
   // Lấy tên trạng thái từ giá trị
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'todo': return 'Cần làm';
+      case 'pending': return 'Cần làm';
       case 'in_progress': return 'Đang thực hiện';
       case 'completed': return 'Hoàn thành';
-      case 'cancelled': return 'Đã hủy';
+      case 'canceled': return 'Đã hủy';
       default: return status;
     }
   };
@@ -138,8 +145,8 @@ export default function TaskDetailPage() {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
       case 'in_progress': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-      case 'todo': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
-      case 'cancelled': return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+      case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+      case 'canceled': return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
     }
   };
@@ -150,7 +157,7 @@ export default function TaskDetailPage() {
     const dueDate = new Date(task.dueDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return dueDate < today && task.status !== 'completed' && task.status !== 'cancelled';
+    return dueDate < today && task.status !== 'completed' && task.status !== 'canceled';
   };
 
   if (loading) {
@@ -161,7 +168,7 @@ export default function TaskDetailPage() {
     return <div>Không tìm thấy công việc</div>;
   }
 
-  const canComplete = task.status !== 'completed' && task.status !== 'cancelled';
+  const canComplete = task.status !== 'completed' && task.status !== 'canceled';
 
   return (
     <div className="space-y-6">
@@ -244,12 +251,21 @@ export default function TaskDetailPage() {
                       </div>
                     </div>
                     
-                    {task.completedAt && (
+                    {task.completedDate && (
                       <div className="flex items-start gap-2">
                         <CheckCircle2 className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                         <div>
                           <p className="text-sm font-medium text-gray-500">Ngày hoàn thành</p>
-                          <p>{formatDate(task.completedAt)}</p>
+                          <p>{formatDate(task.completedDate)}</p>
+                          {task.completedBy && (
+                            <p className="text-xs text-muted-foreground">
+                              Người hoàn thành: {
+                                typeof task.completedBy === 'string' 
+                                  ? 'ID: ' + task.completedBy 
+                                  : task.completedBy.name
+                              }
+                            </p>
+                          )}
                         </div>
                       </div>
                     )}
@@ -265,25 +281,32 @@ export default function TaskDetailPage() {
                     )}
                   </div>
                   
-                  {task.isRecurring && (
-                    <div className="flex items-start gap-2">
-                      <Calendar className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Lặp lại</p>
-                        <p className="capitalize">{task.recurringFrequency || 'Không'}</p>
+                  {task.isRecurring && task.recurringFrequency !== 'none' && (
+                    <div className="mt-4">
+                      <h3 className="text-sm font-medium text-gray-500 mb-2">Thông tin lặp lại</h3>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-medium">Công việc lặp lại</p>
+                          <p className="text-sm text-muted-foreground capitalize">
+                            {task.recurringFrequency === 'daily' && 'Hàng ngày'}
+                            {task.recurringFrequency === 'weekly' && 'Hàng tuần'}
+                            {task.recurringFrequency === 'monthly' && 'Hàng tháng'}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   )}
                 </TabsContent>
                 
                 <TabsContent value="liên kết" className="space-y-4">
-                  {!task.customer && !task.deal ? (
+                  {!task.relatedTo ? (
                     <div className="text-center py-6 text-muted-foreground">
                       Không có liên kết nào
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {task.customer && (
+                      {task.relatedTo.model === 'Customer' && task.customer && (
                         <div className="flex items-start gap-2">
                           <Building className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                           <div>
@@ -306,7 +329,7 @@ export default function TaskDetailPage() {
                         </div>
                       )}
                       
-                      {task.deal && (
+                      {task.relatedTo.model === 'Deal' && task.deal && (
                         <div className="flex items-start gap-2">
                           <DollarSign className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                           <div>
@@ -323,7 +346,7 @@ export default function TaskDetailPage() {
                               </Button>
                             </div>
                             <p className="text-sm text-muted-foreground">
-                              Giá trị: {task.deal.value.toLocaleString()} đ
+                              Giá trị: {task.deal.value?.toLocaleString() || 0} đ
                             </p>
                           </div>
                         </div>

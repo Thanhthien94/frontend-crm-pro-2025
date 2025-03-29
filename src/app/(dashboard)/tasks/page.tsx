@@ -12,14 +12,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -33,7 +25,7 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { PlusCircle, Eye, Edit, Trash2, Search, CheckCircle, Calendar, AlertTriangle } from 'lucide-react';
+import { PlusCircle, Search, Calendar, AlertTriangle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -52,8 +44,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import TaskForm from '@/components/forms/task-form';
+import { TasksTable } from '@/components/data-tables/tasks-table';
 import { usePermission } from '@/hooks/use-permission';
-import { formatDate } from '@/lib/utils';
 
 export default function TasksPage() {
   const router = useRouter();
@@ -154,6 +146,9 @@ export default function TasksPage() {
       case 'completed':
         newFilters.status = 'completed';
         break;
+      case 'canceled':
+        newFilters.status = 'canceled';
+        break;
     }
     
     setCurrentFilters(newFilters);
@@ -163,7 +158,7 @@ export default function TasksPage() {
   // Filtering functions
   const handlePriorityFilter = (priority: string) => {
     const newFilters = { ...currentFilters };
-    if (priority) {
+    if (priority && priority !== 'all') {
       newFilters.priority = priority;
     } else {
       delete newFilters.priority;
@@ -189,58 +184,24 @@ export default function TasksPage() {
     }
   };
 
-  // Helper functions
-  const getPriorityBadgeClass = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
-      case 'low':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
-    }
-  };
-
-  const getStatusBadgeClass = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'in_progress':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
-      case 'canceled':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
-    }
-  };
-
-  const isTaskOverdue = (task: Task) => {
-    if (!task.dueDate) return false;
-    const dueDate = new Date(task.dueDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return dueDate < today && task.status !== 'completed' && task.status !== 'canceled';
-  };
+  const canUpdateTask = checkPermission('tasks', 'update');
+  const canDeleteTask = checkPermission('tasks', 'delete');
 
   return (
     <div className="space-y-6">
       {/* Header Section */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Tasks</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Công việc</h1>
           <p className="text-muted-foreground">
-            Manage your tasks and activities
+            Quản lý các công việc và hoạt động
           </p>
         </div>
         
         {checkPermission('tasks', 'create') && (
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
-            Add Task
+            Thêm công việc
           </Button>
         )}
       </div>
@@ -248,33 +209,34 @@ export default function TasksPage() {
       {/* Tasks Card */}
       <Card>
         <CardHeader>
-          <CardTitle>Tasks</CardTitle>
+          <CardTitle>Danh sách công việc</CardTitle>
         </CardHeader>
         <CardContent>
           {/* Tabs and Filters */}
           <div className="space-y-4">
             <Tabs defaultValue="all" value={activeTab} onValueChange={handleTabChange}>
               <TabsList>
-                <TabsTrigger value="all">All Tasks</TabsTrigger>
-                <TabsTrigger value="my">My Tasks</TabsTrigger>
+                <TabsTrigger value="all">Tất cả</TabsTrigger>
+                <TabsTrigger value="my">Của tôi</TabsTrigger>
                 <TabsTrigger value="overdue" className="flex items-center gap-1">
                   <AlertTriangle className="h-3 w-3" />
-                  Overdue
+                  Quá hạn
                 </TabsTrigger>
                 <TabsTrigger value="today" className="flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
-                  Due Today
+                  Hôm nay
                 </TabsTrigger>
-                <TabsTrigger value="pending">Pending</TabsTrigger>
-                <TabsTrigger value="in_progress">In Progress</TabsTrigger>
-                <TabsTrigger value="completed">Completed</TabsTrigger>
+                <TabsTrigger value="pending">Cần làm</TabsTrigger>
+                <TabsTrigger value="in_progress">Đang thực hiện</TabsTrigger>
+                <TabsTrigger value="completed">Hoàn thành</TabsTrigger>
+                <TabsTrigger value="canceled">Đã hủy</TabsTrigger>
               </TabsList>
             </Tabs>
           
             <div className="flex flex-col sm:flex-row gap-4 mb-4">
               <div className="flex gap-2 flex-1">
                 <Input
-                  placeholder="Search tasks..."
+                  placeholder="Tìm kiếm công việc..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
@@ -285,18 +247,18 @@ export default function TasksPage() {
                 </Button>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Priority:</span>
+                <span className="text-sm text-muted-foreground">Ưu tiên:</span>
                 <Select
                   onValueChange={handlePriorityFilter}
-                  defaultValue={currentFilters.priority || ''}>
+                  defaultValue={currentFilters.priority || 'all'}>
                   <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="All priorities" />
+                    <SelectValue placeholder="Tất cả mức độ" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All priorities</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="all">Tất cả</SelectItem>
+                    <SelectItem value="high">Cao</SelectItem>
+                    <SelectItem value="medium">Trung bình</SelectItem>
+                    <SelectItem value="low">Thấp</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -304,125 +266,22 @@ export default function TasksPage() {
           </div>
           
           {/* Tasks Table */}
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[300px]">Task Title</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead>Priority</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Assigned To</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-4">
-                      Loading...
-                    </TableCell>
-                  </TableRow>
-                ) : tasks.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-4">
-                      No tasks found. Create a new task to get started.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  tasks.map((task) => (
-                    <TableRow key={task._id} className={isTaskOverdue(task) ? 'bg-red-50 dark:bg-red-950/20' : ''}>
-                      <TableCell className="font-medium">
-                        {task.title}
-                        {isTaskOverdue(task) && (
-                          <span className="ml-2 text-xs bg-red-100 text-red-800 px-1.5 py-0.5 rounded-full dark:bg-red-900 dark:text-red-300">
-                            Overdue
-                          </span>
-                        )}
-                        {task.relatedTo && (
-                          <div className="text-xs text-muted-foreground mt-1">
-                            Related to: {task.relatedTo.model}
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {task.dueDate ? formatDate(task.dueDate) : 'No due date'}
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityBadgeClass(
-                            task.priority
-                          )}`}
-                        >
-                          {task.priority}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(
-                            task.status
-                          )}`}
-                        >
-                          {task.status.replace('_', ' ')}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {task.assignedTo?.name || 'Unassigned'}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end space-x-2">
-                          {task.status !== 'completed' && task.status !== 'canceled' && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleCompleteTask(task)}
-                              title="Mark as completed"
-                            >
-                              <CheckCircle className="h-4 w-4" />
-                            </Button>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleViewTask(task)}
-                            title="View details"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          {checkPermission('tasks', 'update') && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleEditTask(task)}
-                              title="Edit task"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          )}
-                          {checkPermission('tasks', 'delete') && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDeleteTask(task)}
-                              title="Delete task"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+          <TasksTable 
+            data={tasks}
+            loading={loading}
+            onView={handleViewTask}
+            onEdit={handleEditTask}
+            onDelete={handleDeleteTask}
+            onComplete={handleCompleteTask}
+            canUpdate={canUpdateTask}
+            canDelete={canDeleteTask}
+          />
           
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex justify-between items-center mt-4">
               <div className="text-sm text-muted-foreground">
-                Showing {tasks.length} of {totalTasks} tasks
+                Hiển thị {tasks.length} trong tổng số {totalTasks} công việc
               </div>
               <div className="flex space-x-2">
                 <Button
@@ -431,10 +290,10 @@ export default function TasksPage() {
                   onClick={() => changePage(page - 1)}
                   disabled={page === 1}
                 >
-                  Previous
+                  Trang trước
                 </Button>
                 <div className="flex items-center text-sm">
-                  Page {page} of {totalPages}
+                  Trang {page} / {totalPages}
                 </div>
                 <Button
                   variant="outline"
@@ -442,7 +301,7 @@ export default function TasksPage() {
                   onClick={() => changePage(page + 1)}
                   disabled={page === totalPages}
                 >
-                  Next
+                  Trang sau
                 </Button>
               </div>
             </div>
@@ -454,9 +313,9 @@ export default function TasksPage() {
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Add New Task</DialogTitle>
+            <DialogTitle>Thêm công việc mới</DialogTitle>
             <DialogDescription>
-              Create a new task or activity to track.
+              Tạo một công việc hoặc hoạt động mới để theo dõi.
             </DialogDescription>
           </DialogHeader>
           <TaskForm
@@ -470,19 +329,18 @@ export default function TasksPage() {
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Bạn có chắc chắn?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the task "{selectedTask?.title}". This action
-              cannot be undone.
+              Hành động này sẽ xóa vĩnh viễn công việc "{selectedTask?.title}". Không thể hoàn tác thao tác này.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 hover:bg-red-700"
               onClick={confirmDeleteTask}
             >
-              Delete
+              Xóa
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -492,15 +350,15 @@ export default function TasksPage() {
       <AlertDialog open={isCompleteDialogOpen} onOpenChange={setIsCompleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Complete Task</AlertDialogTitle>
+            <AlertDialogTitle>Hoàn thành công việc</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to mark "{selectedTask?.title}" as completed?
+              Bạn có chắc chắn muốn đánh dấu công việc "{selectedTask?.title}" là đã hoàn thành?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
             <AlertDialogAction onClick={confirmCompleteTask}>
-              Complete Task
+              Hoàn thành
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -249,7 +249,7 @@ export function DealsTable({
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
           >
-            Previous
+            Trang trước
           </Button>
           <div className="flex items-center space-x-2">
             {Array.from({ length: pageCount }, (_, i) => i + 1).map((page) => (
@@ -268,7 +268,7 @@ export function DealsTable({
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === pageCount}
           >
-            Next
+            Trang sau
           </Button>
         </div>
       )}

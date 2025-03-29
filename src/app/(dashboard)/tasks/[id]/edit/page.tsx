@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Task, TaskFormData } from '@/types/task';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,32 +18,42 @@ export default function EditTaskPage() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { checkPermission } = usePermission();
+  // Thêm flag để kiểm soát việc fetch task
+  const [hasLoaded, setHasLoaded] = useState(false);
+  
+  // Sử dụng useCallback để tránh tạo lại hàm fetchTask qua mỗi lần render
+  const fetchTask = useCallback(async () => {
+    if (hasLoaded || !id) return;
+    
+    try {
+      setLoading(true);
+      const response = await api.get(`/tasks/${id}`);
+      setTask(response.data.data);
+    } catch (error: any) {
+      console.error('Failed to fetch task:', error);
+      toast.error('Lỗi', {
+        description: error.response?.data?.error || 'Không thể tải thông tin công việc',
+      });
+      router.push('/tasks');
+    } finally {
+      setLoading(false);
+      setHasLoaded(true);
+    }
+  }, [id, router, hasLoaded]);
   
   useEffect(() => {
-    // Kiểm tra quyền hạn
+    // Kiểm tra quyền hạn trước khi fetch dữ liệu
     if (!checkPermission('tasks', 'update')) {
       toast.error('Bạn không có quyền chỉnh sửa công việc');
       router.push('/tasks');
       return;
     }
     
-    const fetchTask = async () => {
-      try {
-        const response = await api.get(`/tasks/${id}`);
-        setTask(response.data.data);
-      } catch (error: any) {
-        console.error('Failed to fetch task:', error);
-        toast.error('Lỗi', {
-          description: error.response?.data?.error || 'Không thể tải thông tin công việc',
-        });
-        router.push('/tasks');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchTask();
-  }, [id, router, checkPermission]);
+    // Chỉ fetch task một lần nếu chưa tải
+    if (!hasLoaded) {
+      fetchTask();
+    }
+  }, [checkPermission, router, fetchTask, hasLoaded]);
 
   const handleSubmit = async (data: TaskFormData) => {
     setIsSubmitting(true);

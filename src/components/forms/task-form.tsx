@@ -13,6 +13,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import {
   Select,
@@ -23,6 +24,7 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2 } from 'lucide-react';
 import api from '@/lib/api';
 import { Customer } from '@/types/customer';
@@ -40,6 +42,8 @@ const formSchema = z.object({
     id: z.string().optional(),
   }).optional(),
   reminderDate: z.string().optional(),
+  isRecurring: z.boolean().optional().default(false),
+  recurringFrequency: z.string().optional().default("none"),
 });
 
 interface TaskFormProps {
@@ -51,9 +55,16 @@ interface TaskFormProps {
     id: string;
     name: string;
   };
+  isSubmitting?: boolean;
 }
 
-export default function TaskForm({ task, onSubmit, onCancel, preselectedRelation }: TaskFormProps) {
+export default function TaskForm({ 
+  task, 
+  onSubmit, 
+  onCancel, 
+  preselectedRelation,
+  isSubmitting = false 
+}: TaskFormProps) {
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<{ id: string; name: string }[]>([]);
   const [customers, setCustomers] = useState<{ id: string; name: string }[]>([]);
@@ -76,6 +87,8 @@ export default function TaskForm({ task, onSubmit, onCancel, preselectedRelation
         id: task?.relatedTo?.id || preselectedRelation?.id || '',
       },
       reminderDate: task?.reminderDate ? new Date(task.reminderDate).toISOString().split('T')[0] : '',
+      isRecurring: task?.isRecurring || false,
+      recurringFrequency: task?.recurringFrequency || 'none',
     },
   });
 
@@ -160,9 +173,9 @@ export default function TaskForm({ task, onSubmit, onCancel, preselectedRelation
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Title*</FormLabel>
+                <FormLabel>Tiêu đề*</FormLabel>
                 <FormControl>
-                  <Input placeholder="Task title" {...field} />
+                  <Input placeholder="Tiêu đề công việc" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -173,20 +186,20 @@ export default function TaskForm({ task, onSubmit, onCancel, preselectedRelation
             name="priority"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Priority*</FormLabel>
+                <FormLabel>Độ ưu tiên*</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select priority" />
+                      <SelectValue placeholder="Chọn độ ưu tiên" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="low">Thấp</SelectItem>
+                    <SelectItem value="medium">Trung bình</SelectItem>
+                    <SelectItem value="high">Cao</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -198,21 +211,21 @@ export default function TaskForm({ task, onSubmit, onCancel, preselectedRelation
             name="status"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Status*</FormLabel>
+                <FormLabel>Trạng thái*</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
+                      <SelectValue placeholder="Chọn trạng thái" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="canceled">Canceled</SelectItem>
+                    <SelectItem value="pending">Cần làm</SelectItem>
+                    <SelectItem value="in_progress">Đang thực hiện</SelectItem>
+                    <SelectItem value="completed">Hoàn thành</SelectItem>
+                    <SelectItem value="canceled">Đã hủy</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -224,7 +237,7 @@ export default function TaskForm({ task, onSubmit, onCancel, preselectedRelation
             name="dueDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Due Date</FormLabel>
+                <FormLabel>Ngày hết hạn</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -237,7 +250,7 @@ export default function TaskForm({ task, onSubmit, onCancel, preselectedRelation
             name="reminderDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Reminder Date</FormLabel>
+                <FormLabel>Ngày nhắc nhở</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -250,18 +263,18 @@ export default function TaskForm({ task, onSubmit, onCancel, preselectedRelation
             name="assignedTo"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Assigned To</FormLabel>
+                <FormLabel>Giao cho</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select user" />
+                      <SelectValue placeholder="Chọn người thực hiện" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Unassigned</SelectItem>
+                    {/* <SelectItem value="">Chưa giao</SelectItem> */}
                     {users.map((user) => (
                       <SelectItem key={user.id} value={user.id}>
                         {user.name}
@@ -273,17 +286,67 @@ export default function TaskForm({ task, onSubmit, onCancel, preselectedRelation
               </FormItem>
             )}
           />
+          
+          <FormField
+            control={form.control}
+            name="isRecurring"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Lặp lại công việc</FormLabel>
+                  <FormDescription>
+                    Công việc này sẽ được tạo lại theo định kỳ
+                  </FormDescription>
+                </div>
+              </FormItem>
+            )}
+          />
+          
+          {form.watch("isRecurring") && (
+            <FormField
+              control={form.control}
+              name="recurringFrequency"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tần suất lặp lại</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value || "none"}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn tần suất" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">Không lặp lại</SelectItem>
+                      <SelectItem value="daily">Hàng ngày</SelectItem>
+                      <SelectItem value="weekly">Hàng tuần</SelectItem>
+                      <SelectItem value="monthly">Hàng tháng</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         </div>
         
         <div className="space-y-4">
-          <h3 className="font-medium">Related Entity</h3>
+          <h3 className="font-medium">Thông tin liên kết</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="relatedTo.model"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Related To</FormLabel>
+                  <FormLabel>Liên kết với</FormLabel>
                   <Select
                     onValueChange={handleRelatedModelChange}
                     defaultValue={field.value}
@@ -291,13 +354,13 @@ export default function TaskForm({ task, onSubmit, onCancel, preselectedRelation
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select entity type" />
+                        <SelectValue placeholder="Chọn loại liên kết" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
-                      <SelectItem value="Customer">Customer</SelectItem>
-                      <SelectItem value="Deal">Deal</SelectItem>
+                      {/* <SelectItem value="">Không liên kết</SelectItem> */}
+                      <SelectItem value="Customer">Khách hàng</SelectItem>
+                      <SelectItem value="Deal">Cơ hội</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -310,7 +373,7 @@ export default function TaskForm({ task, onSubmit, onCancel, preselectedRelation
                 name="relatedTo.id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Select {relatedModel}</FormLabel>
+                    <FormLabel>Chọn {relatedModel === 'Customer' ? 'khách hàng' : 'cơ hội'}</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
@@ -318,7 +381,7 @@ export default function TaskForm({ task, onSubmit, onCancel, preselectedRelation
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={`Select ${relatedModel.toLowerCase()}`} />
+                          <SelectValue placeholder={`Chọn ${relatedModel === 'Customer' ? 'khách hàng' : 'cơ hội'}`} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -348,10 +411,10 @@ export default function TaskForm({ task, onSubmit, onCancel, preselectedRelation
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>Mô tả</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Task description"
+                  placeholder="Chi tiết công việc"
                   className="resize-none h-32"
                   {...field}
                 />
@@ -366,15 +429,16 @@ export default function TaskForm({ task, onSubmit, onCancel, preselectedRelation
             variant="outline" 
             type="button" 
             onClick={onCancel}
+            disabled={loading || isSubmitting}
           >
-            Cancel
+            Hủy
           </Button>
           <Button 
             type="submit" 
-            disabled={loading}
+            disabled={loading || isSubmitting}
           >
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {task ? 'Update Task' : 'Create Task'}
+            {(loading || isSubmitting) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {task ? 'Cập nhật công việc' : 'Tạo công việc'}
           </Button>
         </div>
       </form>
