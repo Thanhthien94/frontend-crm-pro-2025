@@ -1,28 +1,20 @@
 "use client";
 
-import DashboardLayout from "@/components/layout/dashboard-layout";
-import TokenSessionGuard from "@/components/auth/token-session-guard";
-import { useAuth } from "@/contexts/auth-context";
-import { Loader2 } from "lucide-react";
+import { Providers } from "./providers";
+import "./globals.css";
 
-export default function ProtectedLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   return (
-    <TokenSessionGuard>
-      <DashboardLayout>{children}</DashboardLayout>
-    </TokenSessionGuard>
+    <html lang="en">
+      <body>
+        <Providers>
+          {children}
+        </Providers>
+      </body>
+    </html>
   );
 }

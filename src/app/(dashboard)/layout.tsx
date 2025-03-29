@@ -1,5 +1,3 @@
-// src/app/(dashboard)/layout.tsx
-
 "use client";
 
 import DashboardLayout from "@/components/layout/dashboard-layout";
