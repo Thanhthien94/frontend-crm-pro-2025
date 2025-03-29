@@ -23,7 +23,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from "sonner"
 import { Loader2 } from 'lucide-react';
 import api from '@/lib/api';
 
@@ -51,7 +51,6 @@ const passwordFormSchema = z.object({
 
 export default function ProfilePage() {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
@@ -77,8 +76,7 @@ export default function ProfilePage() {
     try {
       await api.put('/users/profile', values);
       
-      toast({
-        title: 'Profile updated',
+      toast('Profile updated',{
         description: 'Your profile has been updated successfully.',
       });
       
@@ -94,9 +92,7 @@ export default function ProfilePage() {
       // Refresh page to update user info
       window.location.reload();
     } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
+      toast('Error', {
         description: error.response?.data?.error || 'Failed to update profile',
       });
     } finally {
@@ -112,16 +108,13 @@ export default function ProfilePage() {
         newPassword: values.newPassword,
       });
       
-      toast({
-        title: 'Password updated',
+      toast('Password updated', {
         description: 'Your password has been updated successfully.',
       });
       
       passwordForm.reset();
     } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
+      toast('Error', {
         description: error.response?.data?.error || 'Failed to update password',
       });
     } finally {

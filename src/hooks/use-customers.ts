@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { Customer, CustomerFormData } from '@/types/customer';
-import { useToast } from '@/components/ui/use-toast';
-
+import { toast } from 'sonner';
 interface UseCustomersProps {
   initialPage?: number;
   pageSize?: number;
@@ -15,7 +14,6 @@ export function useCustomers({ initialPage = 1, pageSize = 10 }: UseCustomersPro
   const [page, setPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCustomers, setTotalCustomers] = useState(0);
-  const { toast } = useToast();
 
   const fetchCustomers = async (page: number = 1, filters: Record<string, any> = {}) => {
     setLoading(true);
@@ -34,9 +32,7 @@ export function useCustomers({ initialPage = 1, pageSize = 10 }: UseCustomersPro
       setPage(page);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to fetch customers');
-      toast({
-        variant: 'destructive',
-        title: 'Error',
+      toast('Error', {
         description: err.response?.data?.error || 'Failed to fetch customers',
       });
     } finally {
@@ -49,9 +45,7 @@ export function useCustomers({ initialPage = 1, pageSize = 10 }: UseCustomersPro
       const response = await api.get(`/customers/${id}`);
       return response.data.data;
     } catch (err: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
+      toast('Error', {
         description: err.response?.data?.error || 'Failed to fetch customer',
       });
       throw err;
@@ -61,15 +55,12 @@ export function useCustomers({ initialPage = 1, pageSize = 10 }: UseCustomersPro
   const createCustomer = async (data: CustomerFormData) => {
     try {
       const response = await api.post('/customers', data);
-      toast({
-        title: 'Success',
+      toast.success('Success', {
         description: 'Customer created successfully',
       });
       return response.data.data;
     } catch (err: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
+      toast.error('Error', {
         description: err.response?.data?.error || 'Failed to create customer',
       });
       throw err;
@@ -79,15 +70,12 @@ export function useCustomers({ initialPage = 1, pageSize = 10 }: UseCustomersPro
   const updateCustomer = async (id: string, data: Partial<CustomerFormData>) => {
     try {
       const response = await api.put(`/customers/${id}`, data);
-      toast({
-        title: 'Success',
+      toast.success('Success', {
         description: 'Customer updated successfully',
       });
       return response.data.data;
     } catch (err: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
+      toast.error('Error', {
         description: err.response?.data?.error || 'Failed to update customer',
       });
       throw err;
@@ -97,15 +85,12 @@ export function useCustomers({ initialPage = 1, pageSize = 10 }: UseCustomersPro
   const deleteCustomer = async (id: string) => {
     try {
       await api.delete(`/customers/${id}`);
-      toast({
-        title: 'Success',
+      toast.success('Success', {
         description: 'Customer deleted successfully',
       });
       return true;
     } catch (err: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
+      toast.error('Error', {
         description: err.response?.data?.error || 'Failed to delete customer',
       });
       throw err;
