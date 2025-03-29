@@ -2,6 +2,7 @@
 
 import { Providers } from "./providers";
 import "./globals.css";
+import { Toaster } from "@/components/ui/sonner"; // Thêm Toaster nếu chưa có
 
 export default function RootLayout({
   children,
@@ -13,6 +14,7 @@ export default function RootLayout({
       <body>
         <Providers>
           {children}
+          <Toaster />
         </Providers>
       </body>
     </html>

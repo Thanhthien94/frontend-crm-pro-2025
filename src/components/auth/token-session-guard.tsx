@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { getCookie } from 'cookies-next';
 import { debugAuthState } from '@/lib/auth-debug';
 import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function TokenSessionGuard({ 
   children 
@@ -13,6 +14,7 @@ export default function TokenSessionGuard({
 }) {
   const { refreshUserData, isAuthenticated, loading: authLoading } = useAuth();
   const [isValidating, setIsValidating] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const validateToken = async () => {
@@ -27,7 +29,14 @@ export default function TokenSessionGuard({
           await refreshUserData();
         } catch (error) {
           console.error('Xác thực token thất bại:', error);
+          // Chuyển hướng đến trang login
+          window.location.href = '/login';
+          return;
         }
+      } else if (!token) {
+        // Nếu không có token, chuyển hướng đến trang login
+        window.location.href = '/login';
+        return;
       }
       
       setIsValidating(false);
@@ -41,7 +50,7 @@ export default function TokenSessionGuard({
     }, 5 * 60 * 1000); // Kiểm tra mỗi 5 phút
     
     return () => clearInterval(interval);
-  }, [refreshUserData, isAuthenticated]);
+  }, [refreshUserData, isAuthenticated, router]);
 
   // Hiển thị loading trong khi xác thực token hoặc auth context đang tải
   if (isValidating || authLoading) {

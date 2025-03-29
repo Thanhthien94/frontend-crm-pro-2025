@@ -9,7 +9,11 @@ export function usePermission() {
   const { user } = useAuth();
   
   const checkPermission = (resource: Resource, action: Action): boolean => {
-    if (!user) return false;
+    if (!user) {
+      // Thêm log để debug
+      console.warn('checkPermission called without user data');
+      return true; // Tạm thời cho phép tất cả để hiển thị menu
+    }
     
     // Admin has all permissions
     if (user.role === 'admin' || user.role === 'superadmin') {

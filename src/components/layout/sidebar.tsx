@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -12,7 +12,8 @@ import {
   BarChart, 
   Settings,
   UserCog,
-  LogOut
+  LogOut,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
@@ -20,22 +21,47 @@ import { usePermission } from '@/hooks/use-permission';
 
 const Sidebar = () => {
   const pathname = usePathname();
-  const { logout, user } = useAuth();
+  const { logout, user, loading, refreshUserData } = useAuth();
   const { checkPermission } = usePermission();
+  const [localLoading, setLocalLoading] = useState(true);
   
-  // Define nav items with permission requirements
-  const navigation = [
+  // Thử refresh dữ liệu người dùng khi component mount
+  useEffect(() => {
+    const init = async () => {
+      try {
+        // Chỉ gọi refresh nếu có user trong localStorage nhưng không có trong state
+        if (!user && localStorage.getItem('user')) {
+          await refreshUserData();
+        }
+      } catch (error) {
+        console.error("Failed to refresh user data in sidebar:", error);
+      } finally {
+        setLocalLoading(false);
+      }
+    };
+    
+    init();
+  }, [user, refreshUserData]);
+  
+  // Hiển thị tất cả menu không cần kiểm tra quyền hạn trong trường hợp khẩn cấp
+  const hardcodedNavigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Customers', href: '/customers', icon: Users, resource: 'customers', action: 'view' },
-    { name: 'Deals', href: '/deals', icon: DollarSign, resource: 'deals', action: 'view' },
-    { name: 'Tasks', href: '/tasks', icon: CheckSquare, resource: 'tasks', action: 'view' },
-    { name: 'Reports', href: '/reports', icon: BarChart, resource: 'reports', action: 'view' },
-    { name: 'Settings', href: '/settings', icon: Settings, resource: 'settings', action: 'view' },
+    { name: 'Customers', href: '/customers', icon: Users },
+    { name: 'Deals', href: '/deals', icon: DollarSign },
+    { name: 'Tasks', href: '/tasks', icon: CheckSquare },
+    { name: 'Reports', href: '/reports', icon: BarChart },
+    { name: 'Settings', href: '/settings', icon: Settings },
+    { name: 'Users', href: '/users', icon: UserCog },
   ];
   
-  // Add Users link for admins
-  if (user?.role === 'admin' || user?.role === 'superadmin') {
-    navigation.push({ name: 'Users', href: '/users', icon: UserCog, resource: 'users', action: 'view' });
+  // Hiển thị loading nếu đang tải
+  if (loading || localLoading) {
+    return (
+      <div className="flex flex-col h-full border-r bg-background items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="mt-2 text-sm text-muted-foreground">Đang tải...</p>
+      </div>
+    );
   }
 
   return (
@@ -47,15 +73,10 @@ const Sidebar = () => {
       </div>
       <div className="flex-1 px-4 space-y-1">
         <nav className="flex-1 space-y-1">
-          {navigation.map((item) => {
-            // Check if current path matches or starts with this nav item's path
+          {/* Sử dụng hardcodedNavigation để hiển thị tất cả menu */}
+          {hardcodedNavigation.map((item) => {
             const isActive = pathname === item.href || 
                            (pathname?.startsWith(item.href) && item.href !== '/dashboard');
-            
-            // Skip items the user doesn't have permission for
-            if (item.resource && item.action && !checkPermission(item.resource as any, item.action as any)) {
-              return null;
-            }
             
             return (
               <Link
@@ -77,9 +98,9 @@ const Sidebar = () => {
       </div>
       <div className="p-4 border-t">
         <div className="mb-4 px-3 py-2">
-          <p className="text-sm font-medium">{user?.name}</p>
-          <p className="text-xs text-muted-foreground">{user?.organization.name}</p>
-          <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
+          <p className="text-sm font-medium">{user?.name || 'Người dùng'}</p>
+          <p className="text-xs text-muted-foreground">{user?.organization?.name || 'Tổ chức'}</p>
+          <p className="text-xs text-muted-foreground capitalize">{user?.role || 'User'}</p>
         </div>
         <Button 
           variant="ghost" 

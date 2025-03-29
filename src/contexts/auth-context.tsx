@@ -1,5 +1,3 @@
-// src/contexts/auth-context.tsx
-
 "use client";
 
 import {
@@ -34,12 +32,27 @@ interface RegisterData {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    // Đọc dữ liệu người dùng từ localStorage khi khởi tạo
+    if (typeof window !== 'undefined') {
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        try {
+          return JSON.parse(savedUser);
+        } catch (e) {
+          console.error('Failed to parse user data from localStorage');
+        }
+      }
+    }
+    return null;
+  });
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   // Hàm chung để đồng bộ giữa cookie và localStorage
   const syncAuthState = (userData: User | null, token?: string) => {
+    console.log("syncAuthState called with userData:", !!userData, "token:", !!token);
+    
     if (userData && token) {
       // Nếu có cả data và token, lưu trữ cả hai
       localStorage.setItem("user", JSON.stringify(userData));
@@ -49,24 +62,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         sameSite: "lax",
       });
       setUser(userData);
+      console.log("Auth state updated with user and token");
     } else {
       // Nếu không có một trong hai, xóa cả hai để đảm bảo trạng thái sạch
       localStorage.removeItem("user");
       deleteCookie("token", { path: "/" });
       setUser(null);
+      console.log("Auth state cleared");
     }
   };
 
-  // Hàm refresh user data từ server
+  // Hàm refresh user data từ server - đã cải tiến
   const refreshUserData = async () => {
     try {
       const token = getCookie("token");
       if (!token) {
+        syncAuthState(null); // Đảm bảo xóa dữ liệu nếu không có token
         throw new Error("No token found");
       }
 
       const response = await api.get("/auth/me");
       if (response.data && response.data.data) {
+        // Cập nhật state user
         setUser(response.data.data);
         localStorage.setItem("user", JSON.stringify(response.data.data));
         return response.data.data;
