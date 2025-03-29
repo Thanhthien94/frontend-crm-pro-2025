@@ -1,7 +1,9 @@
+// src/hooks/use-customers.ts
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { Customer, CustomerFormData } from '@/types/customer';
 import { toast } from 'sonner';
+
 interface UseCustomersProps {
   initialPage?: number;
   pageSize?: number;
@@ -15,12 +17,12 @@ export function useCustomers({ initialPage = 1, pageSize = 10 }: UseCustomersPro
   const [totalPages, setTotalPages] = useState(1);
   const [totalCustomers, setTotalCustomers] = useState(0);
 
-  const fetchCustomers = async (page: number = 1, filters: Record<string, any> = {}) => {
+  const fetchCustomers = async (currentPage: number = 1, filters: Record<string, any> = {}) => {
     setLoading(true);
     setError(null);
     try {
       const queryParams = new URLSearchParams({
-        page: page.toString(),
+        page: currentPage.toString(),
         limit: pageSize.toString(),
         ...filters
       });
@@ -29,11 +31,11 @@ export function useCustomers({ initialPage = 1, pageSize = 10 }: UseCustomersPro
       setCustomers(response.data.data);
       setTotalPages(response.data.pagination.pages);
       setTotalCustomers(response.data.pagination.total);
-      setPage(page);
+      setPage(currentPage);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to fetch customers');
-      toast('Error', {
-        description: err.response?.data?.error || 'Failed to fetch customers',
+      setError(err.response?.data?.error || 'Không thể tải danh sách khách hàng');
+      toast.error('Lỗi', {
+        description: err.response?.data?.error || 'Không thể tải danh sách khách hàng',
       });
     } finally {
       setLoading(false);
@@ -45,8 +47,8 @@ export function useCustomers({ initialPage = 1, pageSize = 10 }: UseCustomersPro
       const response = await api.get(`/customers/${id}`);
       return response.data.data;
     } catch (err: any) {
-      toast('Error', {
-        description: err.response?.data?.error || 'Failed to fetch customer',
+      toast.error('Lỗi', {
+        description: err.response?.data?.error || 'Không thể tải thông tin khách hàng',
       });
       throw err;
     }
@@ -55,13 +57,13 @@ export function useCustomers({ initialPage = 1, pageSize = 10 }: UseCustomersPro
   const createCustomer = async (data: CustomerFormData) => {
     try {
       const response = await api.post('/customers', data);
-      toast.success('Success', {
-        description: 'Customer created successfully',
+      toast.success('Thành công', {
+        description: 'Đã tạo khách hàng mới',
       });
       return response.data.data;
     } catch (err: any) {
-      toast.error('Error', {
-        description: err.response?.data?.error || 'Failed to create customer',
+      toast.error('Lỗi', {
+        description: err.response?.data?.error || 'Không thể tạo khách hàng',
       });
       throw err;
     }
@@ -70,13 +72,13 @@ export function useCustomers({ initialPage = 1, pageSize = 10 }: UseCustomersPro
   const updateCustomer = async (id: string, data: Partial<CustomerFormData>) => {
     try {
       const response = await api.put(`/customers/${id}`, data);
-      toast.success('Success', {
-        description: 'Customer updated successfully',
+      toast.success('Thành công', {
+        description: 'Đã cập nhật thông tin khách hàng',
       });
       return response.data.data;
     } catch (err: any) {
-      toast.error('Error', {
-        description: err.response?.data?.error || 'Failed to update customer',
+      toast.error('Lỗi', {
+        description: err.response?.data?.error || 'Không thể cập nhật khách hàng',
       });
       throw err;
     }
@@ -85,13 +87,13 @@ export function useCustomers({ initialPage = 1, pageSize = 10 }: UseCustomersPro
   const deleteCustomer = async (id: string) => {
     try {
       await api.delete(`/customers/${id}`);
-      toast.success('Success', {
-        description: 'Customer deleted successfully',
+      toast.success('Thành công', {
+        description: 'Đã xóa khách hàng',
       });
       return true;
     } catch (err: any) {
-      toast.error('Error', {
-        description: err.response?.data?.error || 'Failed to delete customer',
+      toast.error('Lỗi', {
+        description: err.response?.data?.error || 'Không thể xóa khách hàng',
       });
       throw err;
     }

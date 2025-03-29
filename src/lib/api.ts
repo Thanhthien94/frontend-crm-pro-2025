@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getCookie, deleteCookie, getCookies } from 'cookies-next';
+import { getCookie, deleteCookie } from 'cookies-next';
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
 
