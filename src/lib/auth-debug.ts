@@ -16,9 +16,13 @@ export function debugAuthState() {
       // Parse JWT payload nếu có thể
       const parts = token.split('.');
       if (parts.length === 3) {
-        const payload = JSON.parse(atob(parts[1]));
-        console.log('Token payload:', payload);
-        console.log('Token expiry:', new Date(payload.exp * 1000).toLocaleString());
+        try {
+          const payload = JSON.parse(atob(parts[1]));
+          console.log('Token payload:', payload);
+          console.log('Token expiry:', new Date(payload.exp * 1000).toLocaleString());
+        } catch (e) {
+          console.log('Could not parse token payload');
+        }
       }
     } catch (e) {
       console.log('Could not parse token');

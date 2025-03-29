@@ -26,6 +26,9 @@ export function middleware(request: NextRequest) {
   response.headers.set('x-has-token', token ? 'yes' : 'no');
   response.headers.set('x-is-public-path', isPublicPath ? 'yes' : 'no');
   
+  // Kiểm tra nếu đường dẫn là login callback (đường dẫn với returnUrl)
+  const isLoginCallback = pathname === '/login' && request.nextUrl.searchParams.has('returnUrl');
+  
   // Nếu không có token và đang truy cập route được bảo vệ, chuyển hướng đến login
   if (!token && !isPublicPath) {
     console.log(`[Middleware] No token, redirecting from ${pathname} to login`);
@@ -34,8 +37,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
   
-  // Nếu đã có token mà vẫn vào login/register, chuyển hướng đến dashboard
-  if (token && (pathname === '/login' || pathname === '/register')) {
+  // Nếu đã có token mà vẫn vào login/register (nhưng không phải là login callback), chuyển hướng đến dashboard
+  if (token && (pathname === '/login' || pathname === '/register') && !isLoginCallback) {
     console.log(`[Middleware] Has token, redirecting from ${pathname} to dashboard`);
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }

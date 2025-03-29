@@ -293,7 +293,7 @@ export default function TasksPage() {
                     <SelectValue placeholder="All priorities" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All priorities</SelectItem>
+                    <SelectItem value="all">All priorities</SelectItem>
                     <SelectItem value="high">High</SelectItem>
                     <SelectItem value="medium">Medium</SelectItem>
                     <SelectItem value="low">Low</SelectItem>

@@ -19,7 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { toast } from "sonner"
 import { Loader2 } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
@@ -32,6 +32,7 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get('returnUrl') || '/dashboard';
   const errorMessage = searchParams.get('error');
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -44,21 +45,28 @@ export default function LoginForm() {
   // Hiển thị thông báo lỗi từ URL nếu có
   useEffect(() => {
     if (errorMessage === 'session_expired') {
-      toast('Session Expired', {
+      toast.error('Session Expired', {
         description: 'Your session has expired. Please log in again.',
       });
     }
   }, [errorMessage]);
 
-  // Chuyển hướng nếu đã xác thực
+  // Chuyển hướng nếu đã xác thực và không đang trong quá trình đăng nhập
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !isRedirecting) {
+      // Lưu URL trả về vào localStorage để sử dụng sau khi đăng nhập
+      if (returnUrl) {
+        localStorage.setItem('returnUrl', returnUrl);
+      }
+      
       router.push(returnUrl);
     }
-  }, [isAuthenticated, router, returnUrl]);
+  }, [isAuthenticated, router, returnUrl, isRedirecting]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
+      setIsRedirecting(true);
+      
       // Hiển thị toast đầu tiên
       toast('Logging in...', {
         description: 'Please wait...',
@@ -66,16 +74,22 @@ export default function LoginForm() {
       
       await login(values.email, values.password);
       
-      toast('Login successful', {
+      toast.success('Login successful', {
         description: 'Welcome back!',
       });
       
-      // Đặt timeout nhỏ để đảm bảo cookies đã được đặt trước khi chuyển hướng
+      // Lưu URL trả về vào localStorage để sử dụng sau khi đăng nhập
+      if (returnUrl) {
+        localStorage.setItem('returnUrl', returnUrl);
+      }
+      
+      // Đặt timeout dài hơn để đảm bảo cookies đã được đặt trước khi chuyển hướng
       setTimeout(() => {
-        router.push(returnUrl);
-      }, 500);
+        window.location.href = returnUrl; // Sử dụng window.location thay vì router.push
+      }, 1000);
     } catch (error: any) {
-      toast('Login failed', {
+      setIsRedirecting(false);
+      toast.error('Login failed', {
         description: error.response?.data?.error || 'Invalid credentials',
       });
     }

@@ -34,13 +34,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
     // Đọc dữ liệu người dùng từ localStorage khi khởi tạo
-    if (typeof window !== 'undefined') {
-      const savedUser = localStorage.getItem('user');
+    if (typeof window !== "undefined") {
+      const savedUser = localStorage.getItem("user");
       if (savedUser) {
         try {
           return JSON.parse(savedUser);
         } catch (e) {
-          console.error('Failed to parse user data from localStorage');
+          console.error("Failed to parse user data from localStorage");
         }
       }
     }
@@ -51,8 +51,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Hàm chung để đồng bộ giữa cookie và localStorage
   const syncAuthState = (userData: User | null, token?: string) => {
-    console.log("syncAuthState called with userData:", !!userData, "token:", !!token);
-    
+    console.log(
+      "syncAuthState called with userData:",
+      !!userData,
+      "token:",
+      !!token
+    );
+
     if (userData && token) {
       // Nếu có cả data và token, lưu trữ cả hai
       localStorage.setItem("user", JSON.stringify(userData));
@@ -136,7 +141,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
   }, []);
 
-  // Login function cải tiến
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
@@ -147,7 +151,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log("Login - successful, received user data:", user);
 
       // Đồng bộ trạng thái xác thực
-      syncAuthState(user, token);
+      // Sử dụng cài đặt cookie nâng cao để đảm bảo hoạt động đúng
+      localStorage.setItem("user", JSON.stringify(user));
+
+      // Thiết lập cookie với đường dẫn đầy đủ
+      setCookie("token", token, {
+        maxAge: 30 * 24 * 60 * 60, // 30 ngày
+        path: "/",
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+      });
+
+      setUser(user);
 
       // Clear any errors
       if (window.location.href.includes("error=")) {
@@ -159,6 +174,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       console.log("Login - auth state updated successfully");
+
+      return { user, token }; // Trả về để có thể xử lý tiếp
     } catch (error) {
       console.error("Login failed", error);
       throw error;
@@ -166,7 +183,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }
   };
-
   // Register function cải tiến
   const register = async (data: RegisterData) => {
     setLoading(true);
