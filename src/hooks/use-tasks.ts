@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { Task, TaskFormData } from '@/types/task';
-import { useToast } from '@/components/ui/use-toast';
-
+import {toast} from 'sonner';
 interface UseTasksProps {
   initialPage?: number;
   pageSize?: number;
@@ -15,7 +14,6 @@ export function useTasks({ initialPage = 1, pageSize = 10 }: UseTasksProps = {})
   const [page, setPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(1);
   const [totalTasks, setTotalTasks] = useState(0);
-  const { toast } = useToast();
 
   const fetchTasks = async (page: number = 1, filters: Record<string, any> = {}) => {
     setLoading(true);
@@ -34,11 +32,7 @@ export function useTasks({ initialPage = 1, pageSize = 10 }: UseTasksProps = {})
       setPage(page);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to fetch tasks');
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: err.response?.data?.error || 'Failed to fetch tasks',
-      });
+      toast.error(err.response?.data?.error || 'Failed to fetch tasks');
     } finally {
       setLoading(false);
     }
@@ -56,11 +50,7 @@ export function useTasks({ initialPage = 1, pageSize = 10 }: UseTasksProps = {})
       setPage(1);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to fetch related tasks');
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: err.response?.data?.error || 'Failed to fetch related tasks',
-      });
+      toast.error(err.response?.data?.error || 'Failed to fetch related tasks');
     } finally {
       setLoading(false);
     }
@@ -71,11 +61,7 @@ export function useTasks({ initialPage = 1, pageSize = 10 }: UseTasksProps = {})
       const response = await api.get(`/tasks/${id}`);
       return response.data.data;
     } catch (err: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: err.response?.data?.error || 'Failed to fetch task',
-      });
+      toast.error(err.response?.data?.error || 'Failed to fetch task');
       throw err;
     }
   };
@@ -83,17 +69,10 @@ export function useTasks({ initialPage = 1, pageSize = 10 }: UseTasksProps = {})
   const createTask = async (data: TaskFormData) => {
     try {
       const response = await api.post('/tasks', data);
-      toast({
-        title: 'Success',
-        description: 'Task created successfully',
-      });
+      toast.success('Task created successfully');
       return response.data.data;
     } catch (err: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: err.response?.data?.error || 'Failed to create task',
-      });
+      toast.error(err.response?.data?.error || 'Failed to create task');
       throw err;
     }
   };
@@ -101,17 +80,10 @@ export function useTasks({ initialPage = 1, pageSize = 10 }: UseTasksProps = {})
   const updateTask = async (id: string, data: Partial<TaskFormData>) => {
     try {
       const response = await api.put(`/tasks/${id}`, data);
-      toast({
-        title: 'Success',
-        description: 'Task updated successfully',
-      });
+      toast.success('Task updated successfully');
       return response.data.data;
     } catch (err: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: err.response?.data?.error || 'Failed to update task',
-      });
+      toast.error(err.response?.data?.error || 'Failed to update task');
       throw err;
     }
   };
@@ -119,17 +91,10 @@ export function useTasks({ initialPage = 1, pageSize = 10 }: UseTasksProps = {})
   const deleteTask = async (id: string) => {
     try {
       await api.delete(`/tasks/${id}`);
-      toast({
-        title: 'Success',
-        description: 'Task deleted successfully',
-      });
+      toast.success('Task deleted successfully');
       return true;
     } catch (err: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: err.response?.data?.error || 'Failed to delete task',
-      });
+      toast.error(err.response?.data?.error || 'Failed to delete task');
       throw err;
     }
   };
@@ -137,17 +102,10 @@ export function useTasks({ initialPage = 1, pageSize = 10 }: UseTasksProps = {})
   const completeTask = async (id: string) => {
     try {
       const response = await api.put(`/tasks/${id}`, { status: 'completed' });
-      toast({
-        title: 'Success',
-        description: 'Task marked as completed',
-      });
+      toast.success('Task marked as completed');
       return response.data.data;
     } catch (err: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: err.response?.data?.error || 'Failed to complete task',
-      });
+      toast.error(err.response?.data?.error || 'Failed to complete task');
       throw err;
     }
   };

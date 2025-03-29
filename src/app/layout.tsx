@@ -1,40 +1,28 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
-import { AuthProvider } from '@/contexts/auth-context';
-import { Toaster } from "@/components/ui/sonner";
+"use client";
 
-// import { useEffect } from 'react';
-import { addAuthDebugButton } from '@/lib/auth-debug';
+import DashboardLayout from "@/components/layout/dashboard-layout";
+import TokenSessionGuard from "@/components/auth/token-session-guard";
+import { useAuth } from "@/contexts/auth-context";
+import { Loader2 } from "lucide-react";
 
-
-const inter = Inter({ subsets: ['latin'] });
-
-export const metadata: Metadata = {
-  title: 'CRM Pro',
-  description: 'Professional CRM system for businesses',
-};
-
-export default function RootLayout({
+export default function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Thêm nút debug auth trong development mode
-  // useEffect(() => {
-  //   if (process.env.NODE_ENV === 'development') {
-  //     addAuthDebugButton();
-  //   }
-  // }, []);
+  const { loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <AuthProvider>
-          {children}
-          <Toaster />
-        </AuthProvider>
-      </body>
-    </html>
+    <TokenSessionGuard>
+      <DashboardLayout>{children}</DashboardLayout>
+    </TokenSessionGuard>
   );
 }
