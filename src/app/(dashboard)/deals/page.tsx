@@ -150,7 +150,7 @@ export default function DealsPage() {
         </CardHeader>
         <CardContent>
           {/* Tabs và Bộ lọc */}
-          <div className="space-y-4">
+          <div className="space-y-4 mb-4">
             <Tabs defaultValue="all" value={activeTab} onValueChange={handleTabChange}>
               <TabsList>
                 <TabsTrigger value="all">Tất cả</TabsTrigger>
@@ -163,7 +163,7 @@ export default function DealsPage() {
               </TabsList>
             </Tabs>
           
-            <div className="flex flex-col sm:flex-row gap-4 mb-4">
+            {/* <div className="flex flex-col sm:flex-row gap-4 mb-4">
               <div className="flex gap-2 flex-1">
                 <Input
                   placeholder="Tìm kiếm giao dịch..."
@@ -176,7 +176,7 @@ export default function DealsPage() {
                   <Search className="h-4 w-4" />
                 </Button>
               </div>
-            </div>
+            </div> */}
           </div>
           
           {/* Bảng giao dịch */}

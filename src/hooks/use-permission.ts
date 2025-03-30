@@ -14,7 +14,10 @@ export type ResourceType =
   | "webhook"
   | "api_key"
   | "analytics"
-  | "custom_field";
+  | "custom_field"
+  | "report"
+  | "setting";
+  
 
 export type ActionType =
   | "create"
@@ -40,7 +43,7 @@ export function usePermission() {
     try {
       // Tận dụng API access-control để kiểm tra quyền
       // Đây chỉ là gợi ý - endpoint này có thể cần được thay đổi tùy thuộc vào API thực tế
-      const response = await api.get("/api/v1/permissions/me");
+      const response = await api.get("/permissions/list");
 
       // Cập nhật cache với dữ liệu từ backend
       if (response.data.data && Array.isArray(response.data.data)) {

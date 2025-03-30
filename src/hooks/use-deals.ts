@@ -41,7 +41,7 @@ export function useDeals({
         ...filters,
       });
 
-      const response = await api.get(`/api/v1/deals?${queryParams}`);
+      const response = await api.get(`/deals?${queryParams}`);
       
       // Cập nhật cache
       const fetchedDeals = response.data.data;
@@ -72,7 +72,7 @@ export function useDeals({
     }
     
     try {
-      const response = await api.get(`/api/v1/deals/${id}`);
+      const response = await api.get(`/deals/${id}`);
       
       // Cập nhật cache
       const deal = response.data.data;
@@ -105,7 +105,7 @@ export function useDeals({
         customFields: data.customFields
       };
       
-      const response = await api.post("/api/v1/deals", apiData);
+      const response = await api.post("/deals", apiData);
       
       // Cập nhật cache với deal mới
       const newDeal = response.data.data;
@@ -130,7 +130,7 @@ export function useDeals({
   const updateDeal = async (id: string, data: Partial<DealFormData>) => {
     try {
       // Sử dụng PATCH đúng với API spec
-      const response = await api.patch(`/api/v1/deals/${id}`, data);
+      const response = await api.patch(`/deals/${id}`, data);
       
       // Cập nhật cache
       const updatedDeal = response.data.data;
@@ -154,7 +154,7 @@ export function useDeals({
 
   const deleteDeal = async (id: string) => {
     try {
-      await api.delete(`/api/v1/deals/${id}`);
+      await api.delete(`/deals/${id}`);
       
       // Xóa khỏi cache
       setDealCache(prev => {
@@ -178,7 +178,7 @@ export function useDeals({
 
   const getDealSummary = async () => {
     try {
-      const response = await api.get('/api/v1/deals/summary');
+      const response = await api.get('/deals/summary');
       return response.data.data;
     } catch (err: any) {
       toast.error('Lỗi', {
@@ -190,7 +190,7 @@ export function useDeals({
 
   const changeDealStage = async (id: string, stage: string) => {
     try {
-      const response = await api.patch(`/api/v1/deals/${id}`, { stage });
+      const response = await api.patch(`/deals/${id}`, { stage });
       
       // Cập nhật cache
       const updatedDeal = response.data.data;

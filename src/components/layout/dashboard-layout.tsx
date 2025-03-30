@@ -8,16 +8,21 @@ import { getCookie } from 'cookies-next';
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
-const defaultState = getCookie("sidebar:state");
+const defaultState = getCookie("sidebar_state")?.toString() === "true" || false;
+const HEADER_HEIGHT = '80px';
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   return (
-    <SidebarProvider defaultOpen={defaultState === "true"}>
+    <SidebarProvider defaultOpen={defaultState}>
       <AppSidebar />
-      <main>
-        <SidebarTrigger />
-        <Header />
-        {children}
-      </main>
+      <div className="flex-1 flex flex-col overflow-hidden relative">
+          <Header />
+          <main 
+            className="flex-1 overflow-auto md:px-4"
+            style={{ marginTop: HEADER_HEIGHT }}
+          >
+            {children}
+          </main>
+        </div>
     </SidebarProvider>
     // <div className="flex h-screen overflow-hidden">
     //   <div className="w-64 h-full">

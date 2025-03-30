@@ -114,7 +114,7 @@ export function DealsTable({
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
           <Input
-            placeholder="Tìm kiếm giao dịch..."
+            placeholder="Tìm kiếm thương vụ..."
             value={filters.search}
             onChange={(e) => handleFilterChange('search', e.target.value)}
           />
@@ -155,7 +155,7 @@ export function DealsTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Tiêu đề giao dịch</TableHead>
+              <TableHead>Tiêu đề thương vụ</TableHead>
               <TableHead>Khách hàng</TableHead>
               <TableHead>Giá trị</TableHead>
               <TableHead>Giai đoạn</TableHead>
@@ -170,14 +170,14 @@ export function DealsTable({
                 <TableCell colSpan={7} className="h-24 text-center">
                   <div className="flex justify-center items-center">
                     <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
-                    Đang tải giao dịch...
+                    Đang tải thương vụ...
                   </div>
                 </TableCell>
               </TableRow>
             ) : data.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="h-24 text-center">
-                  Không tìm thấy giao dịch nào.
+                  Không tìm thấy thương vụ nào.
                 </TableCell>
               </TableRow>
             ) : (
@@ -252,7 +252,7 @@ export function DealsTable({
           <AlertDialogHeader>
             <AlertDialogTitle>Bạn có chắc chắn không?</AlertDialogTitle>
             <AlertDialogDescription>
-              Hành động này sẽ xóa vĩnh viễn giao dịch. Bạn không thể hoàn tác việc này.
+              Hành động này sẽ xóa vĩnh viễn thương vụ. Bạn không thể hoàn tác việc này.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

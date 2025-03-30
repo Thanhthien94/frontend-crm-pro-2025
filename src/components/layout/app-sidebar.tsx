@@ -22,20 +22,22 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Action, Resource, usePermission } from "@/hooks/use-permission";
+import { ActionType, ResourceType, usePermission } from "@/hooks/use-permission";
+import { useSidebar } from "@/components/ui/sidebar";
 
 type NavItem = {
   title: string;
   href: string;
   icon: React.ReactNode;
   permission?: {
-    resource: Resource;
-    action: Action;
+    resource: ResourceType;
+    action: ActionType;
   };
 };
 
 export function AppSidebar() {
   const { user } = useAuth();
+  const { open, isMobile } = useSidebar();
   const { checkPermission } = usePermission();
 
   const pathname = usePathname();
@@ -51,16 +53,16 @@ export function AppSidebar() {
       href: "/customers",
       icon: <Users className="h-5 w-5" />,
       permission: {
-        resource: "customers",
+        resource: "customer",
         action: "read",
       },
     },
     {
-      title: "Giao dịch",
+      title: "Thương vụ",
       href: "/deals",
       icon: <DollarSign className="h-5 w-5" />,
       permission: {
-        resource: "deals",
+        resource: "deal",
         action: "read",
       },
     },
@@ -69,7 +71,7 @@ export function AppSidebar() {
       href: "/tasks",
       icon: <CheckSquare className="h-5 w-5" />,
       permission: {
-        resource: "tasks",
+        resource: "task",
         action: "read",
       },
     },
@@ -78,7 +80,7 @@ export function AppSidebar() {
       href: "/reports",
       icon: <BarChart className="h-5 w-5" />,
       permission: {
-        resource: "reports",
+        resource: "report",
         action: "read",
       },
     },
@@ -87,7 +89,7 @@ export function AppSidebar() {
       href: "/settings",
       icon: <Settings className="h-5 w-5" />,
       permission: {
-        resource: "settings",
+        resource: "setting",
         action: "read",
       },
     },
@@ -110,14 +112,14 @@ export function AppSidebar() {
       <div className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b bg-background px-4 md:hidden">
         {/* <SidebarTrigger /> */}
         <div className="flex-1">
-          <h1 className="text-xl font-bold">CRM Pro</h1>
+          {/* <h1 className="text-xl font-bold">CRM Pro</h1> */}
         </div>
       </div>
 
       {/* Sidebar chính */}
       <Sidebar variant="floating" collapsible="icon">
         <SidebarHeader>
-          <div className="flex items-center gap-2">
+          <div data-active={!open} className="flex items-center gap-2 data-[active=true]:hidden">
             <div className="flex-1">
               <h1 className="text-xl font-bold">CRM Pro</h1>
             </div>
@@ -127,7 +129,7 @@ export function AppSidebar() {
         <SidebarContent>
           <SidebarMenu>
             {filteredNavItems.map((item) => (
-              <SidebarMenuItem key={item.href}>
+              <SidebarMenuItem key={item.href} className="px-2">
                 <SidebarMenuButton
                   asChild
                   isActive={
@@ -148,13 +150,13 @@ export function AppSidebar() {
 
         <SidebarFooter>
           {user && (
-            <div className="flex items-center gap-2 px-2">
+            <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
                 <span className="text-sm font-medium text-primary">
                   {user.name?.charAt(0) || "U"}
                 </span>
               </div>
-              <div className="flex flex-col truncate">
+              <div data-active={!open} className="flex flex-col truncate data-[active=true]:hidden">
                 <span className="text-sm font-medium">{user.name}</span>
                 <span className="text-xs text-muted-foreground">
                   {user.organization?.name}

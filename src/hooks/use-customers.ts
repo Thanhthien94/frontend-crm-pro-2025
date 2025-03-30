@@ -41,7 +41,7 @@ export function useCustomers({
           ...filters,
         });
 
-        const response = await api.get(`/api/v1/customers?${queryParams}`);
+        const response = await api.get(`/customers?${queryParams}`);
 
         // Cập nhật cache
         const fetchedCustomers = response.data.data;
@@ -78,7 +78,7 @@ export function useCustomers({
       }
 
       try {
-        const response = await api.get(`/api/v1/customers/${id}`);
+        const response = await api.get(`/customers/${id}`);
 
         // Cập nhật cache
         const customer = response.data.data;
@@ -101,7 +101,7 @@ export function useCustomers({
 
   const createCustomer = async (data: CustomerFormData) => {
     try {
-      const response = await api.post("/api/v1/customers", data);
+      const response = await api.post("/customers", data);
 
       // Cập nhật cache với customer mới
       const newCustomer = response.data.data;
@@ -129,7 +129,7 @@ export function useCustomers({
   ) => {
     try {
       // Sử dụng PATCH đúng với API spec
-      const response = await api.patch(`/api/v1/customers/${id}`, data);
+      const response = await api.patch(`/customers/${id}`, data);
 
       // Cập nhật cache
       const updatedCustomer = response.data.data;
@@ -155,7 +155,7 @@ export function useCustomers({
   const assignCustomer = async (id: string, assignedTo: string) => {
     try {
       // Sử dụng endpoint đặc biệt để assign
-      const response = await api.patch(`/api/v1/customers/${id}/assign`, {
+      const response = await api.patch(`/customers/${id}/assign`, {
         assignedTo,
       });
 
@@ -181,7 +181,7 @@ export function useCustomers({
 
   const deleteCustomer = async (id: string) => {
     try {
-      await api.delete(`/api/v1/customers/${id}`);
+      await api.delete(`customers/${id}`);
 
       // Xóa khỏi cache
       setCustomerCache((prev) => {
@@ -205,7 +205,7 @@ export function useCustomers({
 
   const getCustomersByType = async (type: string) => {
     try {
-      const response = await api.get(`/api/v1/customers/by-type/${type}`);
+      const response = await api.get(`/customers/by-type/${type}`);
       return response.data.data;
     } catch (err: any) {
       toast.error("Lỗi", {
@@ -218,7 +218,7 @@ export function useCustomers({
 
   const getCustomerStatsByType = async () => {
     try {
-      const response = await api.get("/api/v1/customers/stats/by-type");
+      const response = await api.get("/customers/stats/by-type");
       return response.data.data;
     } catch (err: any) {
       toast.error("Lỗi", {
@@ -231,7 +231,7 @@ export function useCustomers({
 
   const getMyCustomers = async () => {
     try {
-      const response = await api.get("/api/v1/customers/assigned-to/me");
+      const response = await api.get("/customers/assigned-to/me");
       return response.data.data;
     } catch (err: any) {
       toast.error("Lỗi", {
