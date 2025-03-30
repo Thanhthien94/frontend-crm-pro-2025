@@ -10,6 +10,7 @@ import {
 import axios from 'axios';
 import api from '@/lib/api';
 import { User } from '@/types/user';
+import { userService } from '@/services/userService';
 
 interface AuthContextType {
   user: User | null;
@@ -56,8 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshUserData = async () => {
     try {
       console.log('[AUTH] Đang refresh dữ liệu user');
-      const response = await api.get('/auth/me');
-      
+      const response = await userService.getCurrentUser();      
       // Xử lý dữ liệu phản hồi - mỗi API có thể trả về cấu trúc khác nhau
       let userData: User | null = null;
       
