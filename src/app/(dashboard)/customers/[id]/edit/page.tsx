@@ -20,7 +20,7 @@ export default function EditCustomerPage() {
   
   useEffect(() => {
     // Check permission
-    if (!checkPermission('customers', 'update')) {
+    if (!checkPermission('customer', 'update')) {
       toast.error('Bạn không có quyền chỉnh sửa khách hàng');
       router.push('/customers');
       return;

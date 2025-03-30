@@ -9,9 +9,9 @@ import {
   User,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import api from "@/lib/api";
 import { formatDateTime } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
+import { taskService } from "@/services/taskService";
 
 interface Activity {
   _id: string;
@@ -49,90 +49,87 @@ export function TaskActivity({ taskId }: TaskActivityProps) {
     const fetchActivities = async () => {
       try {
         setLoading(true);
-        // Trong một hệ thống thực tế, có thể bạn cần thay đổi endpoint này cho phù hợp với API
-        const response = await api.get(`/tasks/${taskId}/activities`);
+        // Sử dụng taskService để lấy hoạt động liên quan đến task
+        // Giả sử taskService đã có phương thức getTaskActivities
+        const response = await taskService.getTaskActivities(taskId);
         setActivities(response.data.data || []);
       } catch (error: any) {
         console.error("Error fetching task activities:", error);
         setError(
           error.response?.data?.error || "Không thể tải hoạt động của công việc"
         );
+
+        // Dữ liệu mẫu để hiển thị nếu API không có sẵn
+        if (loading && !activities.length) {
+          const demoActivities: Activity[] = [
+            {
+              _id: "1",
+              type: "created",
+              description: "Tạo công việc mới",
+              user: {
+                _id: "user1",
+                name: "Nguyễn Văn A",
+              },
+              timestamp: new Date(
+                Date.now() - 7 * 24 * 60 * 60 * 1000
+              ).toISOString(),
+            },
+            {
+              _id: "2",
+              type: "updated",
+              description: "Cập nhật thông tin công việc",
+              user: {
+                _id: "user2",
+                name: "Trần Thị B",
+              },
+              timestamp: new Date(
+                Date.now() - 5 * 24 * 60 * 60 * 1000
+              ).toISOString(),
+              details: {
+                field: "priority",
+                oldValue: "medium",
+                newValue: "high",
+              },
+            },
+            {
+              _id: "3",
+              type: "status_change",
+              description: "Thay đổi trạng thái",
+              user: {
+                _id: "user1",
+                name: "Nguyễn Văn A",
+              },
+              timestamp: new Date(
+                Date.now() - 2 * 24 * 60 * 60 * 1000
+              ).toISOString(),
+              details: {
+                oldValue: "todo",
+                newValue: "in_progress",
+              },
+            },
+            {
+              _id: "4",
+              type: "comment",
+              description:
+                'Đã bình luận: "Cần hoàn thành công việc này trước ngày 15"',
+              user: {
+                _id: "user3",
+                name: "Lê Văn C",
+              },
+              timestamp: new Date(
+                Date.now() - 1 * 24 * 60 * 60 * 1000
+              ).toISOString(),
+            },
+          ];
+          setActivities(demoActivities);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchActivities();
-
-    // Demo data nếu API không có sẵn
-    setTimeout(() => {
-      // Chỉ dùng demo data nếu không kết nối được API
-      if (loading && !activities.length) {
-        const demoActivities: Activity[] = [
-          {
-            _id: "1",
-            type: "created",
-            description: "Tạo công việc mới",
-            user: {
-              _id: "user1",
-              name: "Nguyễn Văn A",
-            },
-            timestamp: new Date(
-              Date.now() - 7 * 24 * 60 * 60 * 1000
-            ).toISOString(),
-          },
-          {
-            _id: "2",
-            type: "updated",
-            description: "Cập nhật thông tin công việc",
-            user: {
-              _id: "user2",
-              name: "Trần Thị B",
-            },
-            timestamp: new Date(
-              Date.now() - 5 * 24 * 60 * 60 * 1000
-            ).toISOString(),
-            details: {
-              field: "priority",
-              oldValue: "medium",
-              newValue: "high",
-            },
-          },
-          {
-            _id: "3",
-            type: "status_change",
-            description: "Thay đổi trạng thái",
-            user: {
-              _id: "user1",
-              name: "Nguyễn Văn A",
-            },
-            timestamp: new Date(
-              Date.now() - 2 * 24 * 60 * 60 * 1000
-            ).toISOString(),
-            details: {
-              oldValue: "todo",
-              newValue: "in_progress",
-            },
-          },
-          {
-            _id: "4",
-            type: "comment",
-            description:
-              'Đã bình luận: "Cần hoàn thành công việc này trước ngày 15"',
-            user: {
-              _id: "user3",
-              name: "Lê Văn C",
-            },
-            timestamp: new Date(
-              Date.now() - 1 * 24 * 60 * 60 * 1000
-            ).toISOString(),
-          },
-        ];
-        setActivities(demoActivities);
-        setLoading(false);
-      }
-    }, 2000);
-  }, [taskId]);
+  }, [taskId, loading, activities.length]);
 
   const getActivityIcon = (type: string) => {
     switch (type) {

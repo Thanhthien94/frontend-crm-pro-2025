@@ -5,11 +5,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { TaskFormData } from '@/types/task';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import TaskForm from '@/components/forms/task-form';
-import api from '@/lib/api';
 import { usePermission } from '@/hooks/use-permission';
 import { toast } from 'sonner';
+import { useTasks } from '@/hooks/use-tasks';
 
 export default function NewTaskPage() {
   const router = useRouter();
@@ -21,6 +21,9 @@ export default function NewTaskPage() {
     id: string;
     name: string;
   } | null>(null);
+  
+  // Sử dụng hook useTasks thay vì gọi API trực tiếp
+  const { createTask } = useTasks();
   
   // Kiểm tra URL params để xem có liên kết sẵn với khách hàng hoặc deal không
   useEffect(() => {
@@ -46,7 +49,7 @@ export default function NewTaskPage() {
   
   useEffect(() => {
     // Kiểm tra quyền hạn
-    if (!checkPermission('tasks', 'create')) {
+    if (!checkPermission('task', 'create')) {
       toast.error('Bạn không có quyền tạo công việc mới');
       router.push('/tasks');
     }
@@ -55,9 +58,10 @@ export default function NewTaskPage() {
   const handleSubmit = async (data: TaskFormData) => {
     setIsSubmitting(true);
     try {
-      const response = await api.post('/tasks', data);
+      // Sử dụng createTask từ hook thay vì gọi API trực tiếp
+      const newTask = await createTask(data);
       toast.success('Tạo công việc mới thành công');
-      router.push(`/tasks/${response.data.data._id}`);
+      router.push(`/tasks/${newTask._id}`);
     } catch (error: any) {
       toast.error('Lỗi', {
         description: error.response?.data?.error || 'Không thể tạo công việc mới',

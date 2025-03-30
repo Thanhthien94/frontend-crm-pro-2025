@@ -28,6 +28,11 @@ export const taskService = {
     return api.get(`/tasks/${id}`);
   },
 
+  // Lấy danh sách hoạt động của task
+  getTaskActivities: async (id: string) => {
+    return api.get(`/tasks/${id}/activities`);
+  },
+
   // Tạo task mới
   createTask: async (taskData: TaskFormData) => {
     // Không cần map vì frontend đã sử dụng cùng cấu trúc với backend
@@ -77,7 +82,7 @@ export const taskService = {
     }
 
     if (processedData.reminderDate) {
-        delete processedData.reminderDate;
+      delete processedData.reminderDate;
     }
 
     return api.patch(`/tasks/${id}`, processedData);
@@ -92,7 +97,6 @@ export const taskService = {
   completeTask: async (id: string) => {
     return api.patch(`/tasks/${id}`, {
       status: "completed",
-      completedDate: new Date().toISOString(),
     });
   },
 
@@ -115,5 +119,15 @@ export const taskService = {
     });
 
     return api.get(`/tasks?${queryParams}`);
+  },
+
+  // Thêm comment vào task
+  addTaskComment: async (id: string, comment: string) => {
+    return api.post(`/tasks/${id}/comments`, { comment });
+  },
+
+  // Lấy comments của task
+  getTaskComments: async (id: string) => {
+    return api.get(`/tasks/${id}/comments`);
   },
 };

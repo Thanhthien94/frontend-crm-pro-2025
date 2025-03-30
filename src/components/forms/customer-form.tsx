@@ -210,7 +210,6 @@ export default function CustomerForm({ customer, onSubmit, onCancel }: CustomerF
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
                     <SelectItem value="website">Website</SelectItem>
                     <SelectItem value="referral">Referral</SelectItem>
                     <SelectItem value="social">Social Media</SelectItem>
@@ -238,7 +237,6 @@ export default function CustomerForm({ customer, onSubmit, onCancel }: CustomerF
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Unassigned</SelectItem>
                     {users.map((user) => (
                       <SelectItem key={user.id} value={user.id}>
                         {user.name}

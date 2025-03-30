@@ -10,13 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -34,7 +28,6 @@ import {
   Loader2,
   PlusCircle,
 } from "lucide-react";
-import api from "@/lib/api";
 import { toast } from "sonner";
 import { usePermission } from "@/hooks/use-permission";
 import { formatDate, formatDateTime } from "@/lib/utils";
@@ -52,6 +45,7 @@ import { Separator } from "@/components/ui/separator";
 import { TaskActivity } from "@/components/tasks/task-activity";
 import { CustomFieldsDisplay } from "@/components/custom-fields/custom-fields-display";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useTasks } from "@/hooks/use-tasks";
 
 export default function TaskDetailPage() {
   const { id } = useParams();
@@ -63,71 +57,41 @@ export default function TaskDetailPage() {
   const [isCompleteDialogOpen, setIsCompleteDialogOpen] = useState(false);
   const { checkPermission } = usePermission();
 
+  // Sử dụng hook useTasks thay vì gọi API trực tiếp
+  const { fetchTask, deleteTask, updateTask, completeTask } = useTasks();
+
   // Tải thông tin task
   useEffect(() => {
-    const fetchTask = async () => {
+    const loadTask = async () => {
       try {
         setLoading(true);
-        const response = await api.get(`/tasks/${id}`);
-        setTask(response.data.data);
+        const taskData = await fetchTask(id as string);
+        setTask(taskData);
       } catch (error: any) {
         console.error("Failed to fetch task:", error);
-        toast.error("Lỗi", {
-          description:
-            error.response?.data?.error || "Không thể tải chi tiết công việc",
-        });
         router.push("/tasks");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTask();
-  }, [id, router]);
+    loadTask();
+  }, [id, router, fetchTask]);
 
   // Xử lý xóa task
   const handleDelete = async () => {
-    try {
-      await api.delete(`/tasks/${id}`);
-      toast.success("Đã xóa công việc thành công");
-      router.push("/tasks");
-    } catch (error: any) {
-      toast.error("Lỗi khi xóa", {
-        description: error.response?.data?.error || "Không thể xóa công việc",
-      });
-    }
+    await deleteTask(id as string);
   };
 
   // Xử lý hoàn thành task
   const handleComplete = async () => {
-    try {
-      setStatusChanging(true);
-      await api.patch(`/tasks/${id}`, {
-        status: "completed",
-        completedDate: new Date().toISOString(),
-      });
-      toast.success("Đã hoàn thành công việc");
+    setStatusChanging(true);
+    const updatedTask = await completeTask(id as string);
 
-      // Cập nhật trạng thái task trong state
-      setTask((prev) => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          status: "completed",
-          completedDate: new Date().toISOString(),
-        };
-      });
-
-      setIsCompleteDialogOpen(false);
-    } catch (error: any) {
-      toast.error("Lỗi khi cập nhật", {
-        description:
-          error.response?.data?.error ||
-          "Không thể cập nhật trạng thái công việc",
-      });
-    } finally {
-      setStatusChanging(false);
-    }
+    // Cập nhật task trong state
+    setTask(updatedTask);
+    setIsCompleteDialogOpen(false);
+    setStatusChanging(false);
   };
 
   // Xử lý thay đổi trạng thái
@@ -135,33 +99,20 @@ export default function TaskDetailPage() {
     try {
       setStatusChanging(true);
 
-      const updateData: any = { status: newStatus };
-
-      // Nếu trạng thái là hoàn thành, thêm ngày hoàn thành
-      if (newStatus === "completed") {
-        updateData.completedDate = new Date().toISOString();
-      }
-
-      await api.patch(`/tasks/${id}`, updateData);
-
-      // Cập nhật trạng thái task trong state
-      setTask((prev) => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          status: newStatus,
-          ...(newStatus === "completed"
-            ? { completedDate: new Date().toISOString() }
-            : {}),
-        };
+      const updatedTask = await updateTask(id as string, {
+        status: newStatus,
+        ...(newStatus === "completed"
+          ? { completedDate: new Date().toISOString() }
+          : {}),
       });
+
+      // Cập nhật task trong state
+      setTask(updatedTask);
 
       toast.success(`Đã cập nhật trạng thái sang ${getStatusName(newStatus)}`);
     } catch (error: any) {
       toast.error("Lỗi khi cập nhật", {
-        description:
-          error.response?.data?.error ||
-          "Không thể cập nhật trạng thái công việc",
+        description: "Không thể cập nhật trạng thái công việc",
       });
     } finally {
       setStatusChanging(false);
@@ -339,7 +290,6 @@ export default function TaskDetailPage() {
     task.status !== "completed" && task.status !== "cancelled";
   const canChangeStatus =
     task.status !== "completed" && task.status !== "cancelled";
-  const dueStatus = getDueStatus(task);
 
   return (
     <div className="space-y-6">
