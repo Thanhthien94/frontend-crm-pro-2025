@@ -36,8 +36,51 @@ export const taskService = {
 
   // Cập nhật task
   updateTask: async (id: string, taskData: Partial<TaskFormData>) => {
-    // Không cần map vì frontend đã sử dụng cùng cấu trúc với backend
-    return api.patch(`/tasks/${id}`, taskData);
+    // Tạo bản sao dữ liệu để xử lý
+    const processedData = { ...taskData };
+
+    // Xử lý relatedTo nếu tồn tại
+    if (
+      processedData.relatedTo &&
+      processedData.relatedTo.model &&
+      processedData.relatedTo.id
+    ) {
+      // Chuyển đổi từ relatedTo sang các trường cụ thể dựa trên model
+      if (processedData.relatedTo.model === "Customer") {
+        processedData.customer = processedData.relatedTo.id;
+        // Xóa trường deal nếu tồn tại vì chỉ có thể liên kết với 1 trong 2
+        delete processedData.deal;
+      } else if (processedData.relatedTo.model === "Deal") {
+        processedData.deal = processedData.relatedTo.id;
+        // Xóa trường customer nếu tồn tại vì chỉ có thể liên kết với 1 trong 2
+        delete processedData.customer;
+      }
+
+      // Xóa trường relatedTo vì backend không cần nó
+      delete processedData.relatedTo;
+    } else if (processedData.relatedTo) {
+      // Nếu relatedTo không đầy đủ, xóa nó đi
+      delete processedData.relatedTo;
+      // Xóa cả customer và deal nếu relatedTo không hợp lệ
+      delete processedData.customer;
+      delete processedData.deal;
+    }
+
+    // Xử lý trường assignedTo nếu là đối tượng
+    if (
+      processedData.assignedTo &&
+      typeof processedData.assignedTo === "object"
+    ) {
+      // @ts-ignore
+      processedData.assignedTo =
+        processedData.assignedTo._id || processedData.assignedTo.id;
+    }
+
+    if (processedData.reminderDate) {
+        delete processedData.reminderDate;
+    }
+
+    return api.patch(`/tasks/${id}`, processedData);
   },
 
   // Xóa task

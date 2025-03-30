@@ -122,16 +122,28 @@ export function useTasks({
 
   const updateTask = async (id: string, data: Partial<TaskFormData>) => {
     try {
-      const response = await taskService.updateTask(id, data);
+      // Xử lý dữ liệu
+      const processedData = { ...data };
+      
+      // Xử lý relatedTo nếu tồn tại
+      if (processedData.relatedTo) {
+        // Kiểm tra xem relatedTo có đầy đủ thông tin không
+        if (!processedData.relatedTo.model || !processedData.relatedTo.id) {
+          // Nếu thiếu thông tin, loại bỏ hoàn toàn
+          delete processedData.relatedTo;
+        }
+      }
+      
+      const response = await taskService.updateTask(id, processedData);
       toast.success("Thành công", { description: "Đã cập nhật công việc" });
-
+  
       // Cập nhật cache
       const updatedTask = response.data.data;
       setTaskCache((prev) => ({
         ...prev,
         [id]: updatedTask,
       }));
-
+  
       return updatedTask;
     } catch (err: any) {
       const errorMessage =

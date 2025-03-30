@@ -7,9 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import TaskForm from '@/components/forms/task-form';
-import api from '@/lib/api';
 import { usePermission } from '@/hooks/use-permission';
 import { toast } from 'sonner';
+import { taskService } from '@/services/taskService'; // Import service
 
 export default function EditTaskPage() {
   const { id } = useParams();
@@ -18,7 +18,6 @@ export default function EditTaskPage() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { checkPermission } = usePermission();
-  // Thêm flag để kiểm soát việc fetch task
   const [hasLoaded, setHasLoaded] = useState(false);
   
   // Sử dụng useCallback để tránh tạo lại hàm fetchTask qua mỗi lần render
@@ -27,7 +26,8 @@ export default function EditTaskPage() {
     
     try {
       setLoading(true);
-      const response = await api.get(`/tasks/${id}`);
+      // Sử dụng taskService thay vì api trực tiếp
+      const response = await taskService.getTask(id as string);
       setTask(response.data.data);
     } catch (error: any) {
       console.error('Failed to fetch task:', error);
@@ -58,7 +58,8 @@ export default function EditTaskPage() {
   const handleSubmit = async (data: TaskFormData) => {
     setIsSubmitting(true);
     try {
-      await api.patch(`/tasks/${id}`, data);
+      // Sử dụng hàm updateTask từ taskService
+      await taskService.updateTask(id as string, data);
       toast.success('Cập nhật công việc thành công');
       router.push(`/tasks/${id}`);
     } catch (error: any) {

@@ -168,11 +168,15 @@ export default function TaskForm({
     setLoading(true);
     try {
       // Clean up related entity if not fully selected
-      if (!values.relatedTo?.model || !values.relatedTo?.id) {
-        values.relatedTo = undefined;
+      const processedValues = { ...values };
+      
+      if (processedValues.relatedTo) {
+        if (!processedValues.relatedTo.model || !processedValues.relatedTo.id) {
+          processedValues.relatedTo = undefined;
+        }
       }
-
-      await onSubmit(values as TaskFormData);
+      
+      await onSubmit(processedValues as TaskFormData);
     } finally {
       setLoading(false);
     }
