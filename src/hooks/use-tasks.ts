@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import api from '@/lib/api';
 import { Task, TaskFormData } from '@/types/task';
+import { taskService } from '@/services/taskService';
 import { toast } from 'sonner';
+import { mapTaskFormToApiData, mapApiDataToTaskForm } from '@/utils/tasks-mapper';
 
 interface UseTasksProps {
   initialPage?: number;
@@ -17,119 +18,26 @@ export function useTasks({ initialPage = 1, pageSize = 10 }: UseTasksProps = {})
   const [totalTasks, setTotalTasks] = useState(0);
   const [taskCache, setTaskCache] = useState<Record<string, Task>>({});
   
-  // Ref để theo dõi trạng thái fetch đầu tiên
   const initialFetchDone = useRef(false);
-  // Ref để lưu trữ filters hiện tại, tránh re-render không cần thiết
   const currentFiltersRef = useRef<Record<string, any>>({});
 
-  // Hàm để tải thông tin liên quan cho các task
-  const loadRelatedEntities = useCallback(async (tasks: Task[]): Promise<Task[]> => {
-    const tasksWithRelatedInfo = [...tasks];
-    
-    // Lấy danh sách ID cần tải
-    const customerIds = new Set<string>();
-    const dealIds = new Set<string>();
-    
-    tasks.forEach(task => {
-      if (task.relatedTo) {
-        if (task.relatedTo.model === 'Customer') {
-          customerIds.add(task.relatedTo.id);
-        } else if (task.relatedTo.model === 'Deal') {
-          dealIds.add(task.relatedTo.id);
-        }
-      }
-    });
-    
-    // Tải thông tin customer nếu cần
-    if (customerIds.size > 0) {
-      try {
-        // Gọi API để lấy danh sách customers theo ID
-        const customerIdsArray = Array.from(customerIds);
-        if (customerIdsArray.length > 0) {
-          const customerResponse = await api.get(`/customers`, {
-            params: { ids: customerIdsArray.join(',') }
-          });
-          
-          const customers = customerResponse.data.data || [];
-          
-          // Map customers vào tasks
-          tasksWithRelatedInfo.forEach(task => {
-            if (task.relatedTo?.model === 'Customer') {
-              const relatedCustomer = customers.find(
-                (c: any) => c._id === task.relatedTo?.id
-              );
-              if (relatedCustomer) {
-                task.customer = {
-                  _id: relatedCustomer._id,
-                  name: relatedCustomer.name,
-                  company: relatedCustomer.company,
-                  email: relatedCustomer.email
-                };
-              }
-            }
-          });
-        }
-      } catch (error) {
-        console.error('Error loading related customers:', error);
-      }
-    }
-    
-    // Tải thông tin deal nếu cần
-    if (dealIds.size > 0) {
-      try {
-        // Gọi API để lấy danh sách deals theo ID
-        const dealIdsArray = Array.from(dealIds);
-        if (dealIdsArray.length > 0) {
-          const dealResponse = await api.get(`/deals`, {
-            params: { ids: dealIdsArray.join(',') }
-          });
-          
-          const deals = dealResponse.data.data || [];
-          
-          // Map deals vào tasks
-          tasksWithRelatedInfo.forEach(task => {
-            if (task.relatedTo?.model === 'Deal') {
-              const relatedDeal = deals.find(
-                (d: any) => d._id === task.relatedTo?.id
-              );
-              if (relatedDeal) {
-                task.deal = {
-                  _id: relatedDeal._id,
-                  title: relatedDeal.title,
-                  value: relatedDeal.value
-                };
-              }
-            }
-          });
-        }
-      } catch (error) {
-        console.error('Error loading related deals:', error);
-      }
-    }
-    
-    return tasksWithRelatedInfo;
-  }, []);
-
   const fetchTasks = useCallback(async (currentPage: number = 1, filters: Record<string, any> = {}) => {
-    // Lưu lại filters hiện tại
-    currentFiltersRef.current = filters;
+    // Chuyển đổi bất kỳ filter nào từ frontend sang backend format
+    const apiFilters = { ...filters };
+    
+    // Chuyển đổi status nếu cần
+    if (apiFilters.status === 'pending') apiFilters.status = 'todo';
+    if (apiFilters.status === 'canceled') apiFilters.status = 'cancelled';
+    
+    currentFiltersRef.current = apiFilters;
     
     setLoading(true);
     setError(null);
+    
     try {
-      const queryParams = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: pageSize.toString(),
-        ...filters
-      });
+      const response = await taskService.getTasks(currentPage, pageSize, apiFilters);
       
-      const response = await api.get(`/tasks?${queryParams}`);
       let fetchedTasks = response.data.data;
-      
-      // Tải thông tin liên quan nếu cần
-      if (fetchedTasks && fetchedTasks.length > 0) {
-        fetchedTasks = await loadRelatedEntities(fetchedTasks);
-      }
       
       // Cập nhật cache và state
       const newCache = { ...taskCache };
@@ -143,53 +51,25 @@ export function useTasks({ initialPage = 1, pageSize = 10 }: UseTasksProps = {})
       setTotalTasks(response.data.pagination.total);
       setPage(currentPage);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Không thể tải danh sách công việc');
-      toast.error('Lỗi', {
-        description: err.response?.data?.error || 'Không thể tải danh sách công việc',
-      });
+      const errorMessage = err.response?.data?.error || 'Không thể tải danh sách công việc';
+      setError(errorMessage);
+      toast.error('Lỗi', { description: errorMessage });
     } finally {
       setLoading(false);
     }
-  }, [loadRelatedEntities, pageSize]);
+  }, [pageSize, taskCache]);
 
-  const fetchRelatedTasks = useCallback(async (model: string, id: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await api.get(`/tasks/related/${model}/${id}`);
-      let relatedTasks = response.data.data;
-      
-      // Tải thông tin liên quan nếu cần
-      if (relatedTasks && relatedTasks.length > 0) {
-        relatedTasks = await loadRelatedEntities(relatedTasks);
-      }
-      
-      setTasks(relatedTasks);
-      setTotalTasks(response.data.count || relatedTasks.length);
-      // No pagination for related tasks
-      setTotalPages(1);
-      setPage(1);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Không thể tải công việc liên quan');
-      toast.error('Lỗi', {
-        description: err.response?.data?.error || 'Không thể tải công việc liên quan',
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [loadRelatedEntities]);
-
-  const getTask = useCallback(async (id: string) => {
-    // Kiểm tra xem task có trong cache không
+  const fetchTask = useCallback(async (id: string) => {
+    // Kiểm tra nếu đã có trong cache
     if (taskCache[id]) {
       return taskCache[id];
     }
     
     try {
-      const response = await api.get(`/tasks/${id}`);
-      const task = response.data.data;
+      const response = await taskService.getTask(id);
       
       // Cập nhật cache
+      const task = response.data.data;
       setTaskCache(prev => ({
         ...prev,
         [id]: task
@@ -197,17 +77,16 @@ export function useTasks({ initialPage = 1, pageSize = 10 }: UseTasksProps = {})
       
       return task;
     } catch (err: any) {
-      toast.error('Lỗi', {
-        description: err.response?.data?.error || 'Không thể tải thông tin công việc',
-      });
+      const errorMessage = err.response?.data?.error || 'Không thể tải thông tin công việc';
+      toast.error('Lỗi', { description: errorMessage });
       throw err;
     }
   }, [taskCache]);
 
   const createTask = async (data: TaskFormData) => {
     try {
-      const response = await api.post('/tasks', data);
-      toast.success('Đã tạo công việc mới');
+      const response = await taskService.createTask(data);
+      toast.success('Thành công', { description: 'Đã tạo công việc mới' });
       
       // Cập nhật cache
       const newTask = response.data.data;
@@ -216,39 +95,38 @@ export function useTasks({ initialPage = 1, pageSize = 10 }: UseTasksProps = {})
         [newTask._id]: newTask
       }));
       
-      return response.data.data;
+      return newTask;
     } catch (err: any) {
-      toast.error('Lỗi', {
-        description: err.response?.data?.error || 'Không thể tạo công việc mới',
-      });
+      const errorMessage = err.response?.data?.error || 'Không thể tạo công việc mới';
+      toast.error('Lỗi', { description: errorMessage });
       throw err;
     }
   };
 
   const updateTask = async (id: string, data: Partial<TaskFormData>) => {
     try {
-      const response = await api.patch(`/tasks/${id}`, data);
-      toast.success('Đã cập nhật công việc');
+      const response = await taskService.updateTask(id, data);
+      toast.success('Thành công', { description: 'Đã cập nhật công việc' });
       
       // Cập nhật cache
+      const updatedTask = response.data.data;
       setTaskCache(prev => ({
         ...prev,
-        [id]: response.data.data
+        [id]: updatedTask
       }));
       
-      return response.data.data;
+      return updatedTask;
     } catch (err: any) {
-      toast.error('Lỗi', {
-        description: err.response?.data?.error || 'Không thể cập nhật công việc',
-      });
+      const errorMessage = err.response?.data?.error || 'Không thể cập nhật công việc';
+      toast.error('Lỗi', { description: errorMessage });
       throw err;
     }
   };
 
   const deleteTask = async (id: string) => {
     try {
-      await api.delete(`/tasks/${id}`);
-      toast.success('Đã xóa công việc');
+      await taskService.deleteTask(id);
+      toast.success('Thành công', { description: 'Đã xóa công việc' });
       
       // Xóa khỏi cache
       setTaskCache(prev => {
@@ -259,33 +137,28 @@ export function useTasks({ initialPage = 1, pageSize = 10 }: UseTasksProps = {})
       
       return true;
     } catch (err: any) {
-      toast.error('Lỗi', {
-        description: err.response?.data?.error || 'Không thể xóa công việc',
-      });
+      const errorMessage = err.response?.data?.error || 'Không thể xóa công việc';
+      toast.error('Lỗi', { description: errorMessage });
       throw err;
     }
   };
 
   const completeTask = async (id: string) => {
     try {
-      const response = await api.patch(`/tasks/${id}`, {
-        status: 'completed',
-        completedDate: new Date().toISOString()
-      });
-      
-      toast.success('Đã hoàn thành công việc');
+      const response = await taskService.completeTask(id);
+      toast.success('Thành công', { description: 'Đã đánh dấu hoàn thành công việc' });
       
       // Cập nhật cache
+      const updatedTask = response.data.data;
       setTaskCache(prev => ({
         ...prev,
-        [id]: response.data.data
+        [id]: updatedTask
       }));
       
-      return response.data.data;
+      return updatedTask;
     } catch (err: any) {
-      toast.error('Lỗi', {
-        description: err.response?.data?.error || 'Không thể hoàn thành công việc',
-      });
+      const errorMessage = err.response?.data?.error || 'Không thể đánh dấu hoàn thành công việc';
+      toast.error('Lỗi', { description: errorMessage });
       throw err;
     }
   };
@@ -295,7 +168,7 @@ export function useTasks({ initialPage = 1, pageSize = 10 }: UseTasksProps = {})
     fetchTasks(newPage, currentFiltersRef.current);
   }, [fetchTasks]);
 
-  // Fetch tasks chỉ một lần khi component mount
+  // Fetch tasks on initial load only once
   useEffect(() => {
     if (!initialFetchDone.current) {
       fetchTasks(initialPage);
@@ -311,8 +184,7 @@ export function useTasks({ initialPage = 1, pageSize = 10 }: UseTasksProps = {})
     totalPages,
     totalTasks,
     fetchTasks,
-    fetchRelatedTasks,
-    getTask,
+    fetchTask,
     createTask,
     updateTask,
     deleteTask,

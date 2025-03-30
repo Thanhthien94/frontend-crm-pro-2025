@@ -14,12 +14,8 @@ const api = axios.create({
 // Interceptor cho request
 api.interceptors.request.use(
   (config) => {
-    // Không cần thêm Authorization header vì cookie HTTP-only
-    // sẽ tự động được gửi đi với mỗi request
-
     // Thêm một số thông tin debug
     config.headers["X-Client-Time"] = new Date().toISOString();
-
     return config;
   },
   (error) => {
@@ -37,15 +33,8 @@ api.interceptors.response.use(
     // Chỉ xử lý khi có lỗi 401 và đang ở client side
     if (error.response?.status === 401 && typeof window !== "undefined") {
       console.log("[API] Nhận lỗi 401 - phiên đăng nhập hết hạn");
-
-      // Xóa dữ liệu user từ localStorage
       localStorage.removeItem("user");
-
-      // Lưu thông tin về lỗi để có thể hiển thị message phù hợp
       localStorage.setItem("auth_error", "session_expired");
-
-      // Cookie HTTP-only sẽ được xóa bởi server response
-      // chúng ta không thể xóa nó từ phía client
     }
     return Promise.reject(error);
   }

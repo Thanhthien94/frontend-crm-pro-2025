@@ -2,7 +2,7 @@ export interface Deal {
   _id: string;
   title: string;  // API trả về field title
   value: number;
-  currency: string;
+  currency?: string;
   stage: 'lead' | 'qualified' | 'proposal' | 'negotiation' | 'closed-won' | 'closed-lost';
   expectedCloseDate?: string;
   customer: {
@@ -11,7 +11,7 @@ export interface Deal {
     email: string;
     company?: string;
   };
-  assignedTo: {
+  assignedTo?: {
     _id: string;
     name: string;
     email: string;
@@ -20,7 +20,7 @@ export interface Deal {
   customFields?: Record<string, any>;
   probability?: number;
   status: 'active' | 'inactive';
-  organization: string;
+  organization?: string;
   products?: Array<{
     _id: string;
     name: string;
@@ -39,7 +39,7 @@ export interface Deal {
 }
 
 export interface DealFormData {
-  name: string;  // Form sử dụng name nhưng sẽ được map sang title khi gửi lên API
+  name: string;  // Form sử dụng name
   value: number;
   stage: string;
   expectedCloseDate?: string;

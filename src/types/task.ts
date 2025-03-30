@@ -4,7 +4,8 @@ export interface Task {
   description?: string;
   dueDate?: string;
   priority: 'low' | 'medium' | 'high';
-  status: 'pending' | 'in_progress' | 'completed' | 'canceled';
+  // Thay đổi từ 'pending' sang 'todo' theo backend
+  status: 'todo' | 'in_progress' | 'completed' | 'cancelled'; // Chú ý chính tả 'cancelled' với hai chữ l
   assignedTo?: {
     _id: string;
     name: string;
@@ -15,7 +16,6 @@ export interface Task {
     model: 'Customer' | 'Deal';
     id: string;
   };
-  // Thông tin bổ sung khi fetch task detail
   customer?: {
     _id: string;
     name: string; 
@@ -28,8 +28,8 @@ export interface Task {
     value?: number;
   };
   reminderDate?: string;
-  completedDate?: string; // Giữ nguyên theo backend
-  completedBy?: string | null; // String ID của user hoặc null
+  completedDate?: string;
+  completedBy?: string | { _id: string; name: string; email: string; };
   createdBy: {
     _id: string;
     name: string;
@@ -38,7 +38,7 @@ export interface Task {
   createdAt: string;
   updatedAt: string;
   isRecurring: boolean;
-  recurringFrequency: string; // "none", "daily", "weekly", "monthly"
+  recurringFrequency: 'none' | 'daily' | 'weekly' | 'monthly';
   customFields?: Record<string, any>;
 }
 
@@ -47,7 +47,7 @@ export interface TaskFormData {
   description?: string;
   dueDate?: string;
   priority: string;
-  status: string;
+  status: string; // Frontend form vẫn có thể giữ nguyên, nhưng cần mapper khi gửi lên server
   assignedTo?: string;
   relatedTo?: {
     model: string;
