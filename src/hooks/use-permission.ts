@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/auth-context';
 
 export type Resource = 'customers' | 'deals' | 'tasks' | 'reports' | 'settings' | 'users';
-export type Action = 'view' | 'create' | 'update' | 'delete';
+export type Action = 'read' | 'create' | 'update' | 'delete';
 
 export function usePermission() {
   const { user } = useAuth();
@@ -22,10 +22,10 @@ export function usePermission() {
     
     // Define permission rules for regular users
     const userPermissions: Record<Resource, Action[]> = {
-      customers: ['view', 'create', 'update'],
-      deals: ['view', 'create', 'update'],
-      tasks: ['view', 'create', 'update', 'delete'],
-      reports: ['view'],
+      customers: ['read', 'create', 'update'],
+      deals: ['read', 'create', 'update'],
+      tasks: ['read', 'create', 'update', 'delete'],
+      reports: ['read'],
       settings: [],
       users: []
     };

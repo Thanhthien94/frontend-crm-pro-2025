@@ -15,6 +15,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       <AppSidebar />
       <main>
         <SidebarTrigger />
+        <Header />
         {children}
       </main>
     </SidebarProvider>

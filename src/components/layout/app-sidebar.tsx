@@ -52,7 +52,7 @@ export function AppSidebar() {
       icon: <Users className="h-5 w-5" />,
       permission: {
         resource: "customers",
-        action: "view",
+        action: "read",
       },
     },
     {
@@ -61,7 +61,7 @@ export function AppSidebar() {
       icon: <DollarSign className="h-5 w-5" />,
       permission: {
         resource: "deals",
-        action: "view",
+        action: "read",
       },
     },
     {
@@ -70,7 +70,7 @@ export function AppSidebar() {
       icon: <CheckSquare className="h-5 w-5" />,
       permission: {
         resource: "tasks",
-        action: "view",
+        action: "read",
       },
     },
     {
@@ -79,7 +79,7 @@ export function AppSidebar() {
       icon: <BarChart className="h-5 w-5" />,
       permission: {
         resource: "reports",
-        action: "view",
+        action: "read",
       },
     },
     {
@@ -88,7 +88,7 @@ export function AppSidebar() {
       icon: <Settings className="h-5 w-5" />,
       permission: {
         resource: "settings",
-        action: "view",
+        action: "read",
       },
     },
     {
