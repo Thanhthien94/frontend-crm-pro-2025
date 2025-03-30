@@ -20,10 +20,8 @@ import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z
-    .string()
-    .min(6, { message: "Password must be at least 6 characters" }),
+  email: z.string().email({ message: "Vui lòng nhập địa chỉ email hợp lệ" }),
+  password: z.string().min(6, { message: "Mật khẩu phải có ít nhất 6 ký tự" }),
 });
 
 export default function LoginForm() {
@@ -32,7 +30,7 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get("returnUrl") || "/dashboard";
   const errorMessage = searchParams.get("error");
-  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -42,55 +40,68 @@ export default function LoginForm() {
     },
   });
 
-  // Hiển thị thông báo lỗi từ URL nếu có
+  // Kiểm tra lỗi từ URL
   useEffect(() => {
     if (errorMessage === "session_expired") {
-      toast.error("Session Expired", {
-        description: "Your session has expired. Please log in again.",
+      toast.error("Phiên đăng nhập hết hạn", {
+        description: "Vui lòng đăng nhập lại.",
       });
     }
   }, [errorMessage]);
 
-  // Chuyển hướng nếu đã xác thực và không đang trong quá trình đăng nhập
+  // Chuyển hướng sau khi đăng nhập thành công và nhận được thông tin user
   useEffect(() => {
-    if (isAuthenticated && !isRedirecting) {
-      // Lưu URL trả về vào localStorage để sử dụng sau khi đăng nhập
-      if (returnUrl) {
-        localStorage.setItem("returnUrl", returnUrl);
-      }
+    if (loginSuccess && isAuthenticated) {
+      console.log(
+        "[LOGIN] Đã xác thực thành công, chuẩn bị chuyển hướng đến:",
+        returnUrl
+      );
 
-      router.push(returnUrl);
+      // Đặt timeout trước khi chuyển hướng để đảm bảo token đã được thiết lập
+      const redirectTimer = setTimeout(() => {
+        console.log("[LOGIN] Chuyển hướng đến:", returnUrl);
+        router.push(returnUrl);
+      }, 500);
+
+      return () => clearTimeout(redirectTimer);
     }
-  }, [isAuthenticated, router, returnUrl, isRedirecting]);
+  }, [loginSuccess, isAuthenticated, router, returnUrl]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    // Reset trạng thái đăng nhập thành công
+    setLoginSuccess(false);
+
     try {
-      setIsRedirecting(true);
+      console.log("[LOGIN] Bắt đầu xử lý đăng nhập");
 
-      // Hiển thị toast đầu tiên
-      toast("Logging in...", {
-        description: "Please wait...",
+      // Hiển thị thông báo đang đăng nhập
+      toast("Đang đăng nhập...", {
+        description: "Vui lòng đợi...",
       });
 
-      await login(values.email, values.password);
+      // Thực hiện đăng nhập
+      const userData = await login(values.email, values.password);
+      console.log(
+        "[LOGIN] Đăng nhập thành công, nhận được dữ liệu user:",
+        userData
+      );
 
-      toast.success("Login successful", {
-        description: "Welcome back!",
+      toast.success("Đăng nhập thành công", {
+        description: "Chào mừng trở lại!",
       });
 
-      // Lưu URL trả về vào localStorage để sử dụng sau khi đăng nhập
+      // Lưu URL trả về vào localStorage nếu cần
       if (returnUrl) {
         localStorage.setItem("returnUrl", returnUrl);
+        console.log("[LOGIN] Đã lưu returnUrl:", returnUrl);
       }
 
-      // Đặt timeout dài hơn để đảm bảo cookies đã được đặt trước khi chuyển hướng
-      setTimeout(() => {
-        router.push(returnUrl);
-      }, 1000);
-    } catch {
-      setIsRedirecting(false);
-      toast.error("Login failed", {
-        description: "Invalid credentials",
+      // Đánh dấu đăng nhập thành công để trigger chuyển hướng
+      setLoginSuccess(true);
+    } catch (error) {
+      console.error("[LOGIN] Đăng nhập thất bại", error);
+      toast.error("Đăng nhập thất bại", {
+        description: "Thông tin đăng nhập không chính xác",
       });
     }
   }
@@ -116,7 +127,7 @@ export default function LoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>Mật khẩu</FormLabel>
               <FormControl>
                 <Input type="password" placeholder="******" {...field} />
               </FormControl>
@@ -132,10 +143,10 @@ export default function LoginForm() {
           {form.formState.isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Logging in...
+              Đang đăng nhập...
             </>
           ) : (
-            "Login"
+            "Đăng nhập"
           )}
         </Button>
       </form>

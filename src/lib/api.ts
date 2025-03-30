@@ -1,68 +1,51 @@
-import axios from 'axios';
-import { getCookie, deleteCookie } from 'cookies-next';
+import axios from "axios";
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/v1";
 
 const api = axios.create({
   baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
-  withCredentials: true // Important for cookies to be sent with requests
+  withCredentials: true, // Quan trọng để gửi cookie cùng các request
 });
 
-// Hàm kiểm tra token có hợp lệ không
-const hasValidToken = () => {
-  const token = getCookie('token');
-  if (!token) return false;
-  
-  // Kiểm tra xem token có định dạng JWT không
-  try {
-    const parts = token.toString().split('.');
-    return parts.length === 3;
-  } catch {
-    return false;
-  }
-};
-
-// Add request interceptor for authentication
+// Interceptor cho request
 api.interceptors.request.use(
   (config) => {
-    // Token will be sent automatically via cookies
-    // This is just for client-side API calls that might need the token in headers
-    const token = getCookie('token');
-    if (token) {
-      console.log('token exists, adding to headers: ', token);
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    
-    // Thêm header cho debugging
-    config.headers['X-Client-Time'] = new Date().toISOString();
-    config.headers['X-Has-Token'] = hasValidToken() ? 'yes' : 'no';
-    
+    // Không cần thêm Authorization header vì cookie HTTP-only
+    // sẽ tự động được gửi đi với mỗi request
+
+    // Thêm một số thông tin debug
+    config.headers["X-Client-Time"] = new Date().toISOString();
+
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error("[API] Lỗi trong request interceptor:", error);
+    return Promise.reject(error);
+  }
 );
 
-// Response interceptor to handle authentication errors
+// Interceptor cho response để xử lý lỗi xác thực
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    return response;
+  },
   (error) => {
     // Chỉ xử lý khi có lỗi 401 và đang ở client side
-    if (error.response?.status === 401 && typeof window !== 'undefined') {
-      console.log('API received 401 error - logging out');
-      
-      // Clean up cookies and local storage
-      deleteCookie('token', { path: '/' });
-      localStorage.removeItem('user');
-      
-      // Lưu lại đường dẫn hiện tại để có thể quay lại sau khi đăng nhập
-      const currentPath = window.location.pathname;
-      if (currentPath !== '/login' && currentPath !== '/register') {
-        // Chỉ chuyển hướng nếu không phải đang ở trang login hoặc register
-        window.location.href = `/login?returnUrl=${encodeURIComponent(currentPath)}`;
-      }
+    if (error.response?.status === 401 && typeof window !== "undefined") {
+      console.log("[API] Nhận lỗi 401 - phiên đăng nhập hết hạn");
+
+      // Xóa dữ liệu user từ localStorage
+      localStorage.removeItem("user");
+
+      // Lưu thông tin về lỗi để có thể hiển thị message phù hợp
+      localStorage.setItem("auth_error", "session_expired");
+
+      // Cookie HTTP-only sẽ được xóa bởi server response
+      // chúng ta không thể xóa nó từ phía client
     }
     return Promise.reject(error);
   }

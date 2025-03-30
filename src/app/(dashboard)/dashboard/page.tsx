@@ -165,7 +165,7 @@ export default function DashboardPage() {
         {/* Active Deals Card */}
         <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => router.push('/deals')}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Giao dịch đang hoạt động</CardTitle>
+            <CardTitle className="text-sm font-medium">Thương vụ đang hoạt động</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -211,7 +211,7 @@ export default function DashboardPage() {
               {stats.sales?.growthRate || 0}%
             </div>
             <p className="text-xs text-muted-foreground">
-              {stats.sales?.thisMonthWonDeals || 0} giao dịch thành công tháng này
+              {stats.sales?.thisMonthWonDeals || 0} thương vụ thành công tháng này
             </p>
           </CardContent>
         </Card>
@@ -219,13 +219,13 @@ export default function DashboardPage() {
 
       <Tabs defaultValue="deals">
         <TabsList>
-          <TabsTrigger value="deals">Giao dịch</TabsTrigger>
+          <TabsTrigger value="deals">Thương vụ</TabsTrigger>
           <TabsTrigger value="tasks">Công việc</TabsTrigger>
         </TabsList>
         <TabsContent value="deals" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Giao dịch theo giai đoạn</CardTitle>
+              <CardTitle>Thương vụ theo giai đoạn</CardTitle>
               <CardDescription>
                 Tổng quan về đường dẫn bán hàng hiện tại
               </CardDescription>
@@ -275,14 +275,14 @@ export default function DashboardPage() {
               ) : (
                 <div className="py-12 text-center">
                   <p className="text-muted-foreground mb-4">
-                    Không có dữ liệu giao dịch. Tạo giao dịch đầu tiên để xem thống kê đường dẫn.
+                    Không có dữ liệu thương vụ. Tạo thương vụ đầu tiên để xem thống kê đường dẫn.
                   </p>
                   <Button 
                     onClick={() => router.push('/deals/new')}
                     className="gap-2 inline-flex items-center"
                   >
                     <PlusCircle className="h-4 w-4" />
-                    Tạo giao dịch đầu tiên
+                    Tạo thương vụ đầu tiên
                   </Button>
                 </div>
               )}
