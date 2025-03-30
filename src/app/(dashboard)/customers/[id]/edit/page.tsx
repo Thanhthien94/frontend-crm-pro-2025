@@ -7,9 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import CustomerForm from '@/components/forms/customer-form';
-import api from '@/lib/api';
-import {toast } from 'sonner';
+import { toast } from 'sonner';
 import { usePermission } from '@/hooks/use-permission';
+import { useCustomers } from '@/hooks/use-customers';
 
 export default function EditCustomerPage() {
   const { id } = useParams();
@@ -17,6 +17,7 @@ export default function EditCustomerPage() {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(true);
   const { checkPermission } = usePermission();
+  const { getCustomer, updateCustomer } = useCustomers();
   
   useEffect(() => {
     // Check permission
@@ -28,8 +29,9 @@ export default function EditCustomerPage() {
     
     const fetchCustomer = async () => {
       try {
-        const response = await api.get(`/customers/${id}`);
-        setCustomer(response.data.data);
+        setLoading(true);
+        const customerData = await getCustomer(id as string);
+        setCustomer(customerData);
       } catch (error: any) {
         console.error('Failed to fetch customer:', error);
         toast.error('Không thể lấy thông tin khách hàng');
@@ -40,14 +42,14 @@ export default function EditCustomerPage() {
     };
     
     fetchCustomer();
-  }, [id, router, toast, checkPermission]);
+  }, [id, router, checkPermission, getCustomer]);
 
   const handleSubmit = async (data: CustomerFormData) => {
     try {
-      await api.put(`/customers/${id}`, data);
+      await updateCustomer(id as string, data);
       toast.success('Đã cập nhật khách hàng thành công');
       router.push(`/customers/${id}`);
-    } catch {
+    } catch (error: any) {
       toast.error('Không thể cập nhật khách hàng');
     }
   };

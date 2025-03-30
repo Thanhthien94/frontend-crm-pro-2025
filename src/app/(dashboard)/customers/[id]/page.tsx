@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Edit, Trash2, DollarSign, CheckSquare } from "lucide-react";
-import api from "@/lib/api";
+import { useCustomers } from "@/hooks/use-customers";
 import { usePermission } from "@/hooks/use-permission";
 import { formatDate } from "@/lib/utils";
 import { toast } from "sonner";
@@ -35,12 +35,14 @@ export default function CustomerDetailPage() {
   const [loading, setLoading] = useState(true);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const { checkPermission } = usePermission();
+  const { getCustomer, deleteCustomer } = useCustomers();
 
   useEffect(() => {
     const fetchCustomer = async () => {
       try {
-        const response = await api.get(`/customers/${id}`);
-        setCustomer(response.data.data);
+        setLoading(true);
+        const customerData = await getCustomer(id as string);
+        setCustomer(customerData);
       } catch (error: any) {
         console.error("Failed to fetch customer:", error);
         toast.error("Không thể lấy thông tin khách hàng", {
@@ -53,12 +55,12 @@ export default function CustomerDetailPage() {
     };
 
     fetchCustomer();
-  }, [id, router, toast]);
+  }, [id, router, getCustomer]);
 
   const handleDelete = async () => {
     try {
-      await api.delete(`/customers/${id}`);
-      toast.success('Đã xóa khách hàng thành công');
+      await deleteCustomer(id as string);
+      toast.success("Đã xóa khách hàng thành công");
       router.push("/customers");
     } catch (error: any) {
       toast.error(error.response?.data?.error || "Không thể xóa khách hàng");
@@ -83,13 +85,13 @@ export default function CustomerDetailPage() {
           Quay lại danh sách
         </Button>
         <div className="flex space-x-2">
-          {checkPermission("customers", "update") && (
+          {checkPermission("customer", "update") && (
             <Button onClick={() => router.push(`/customers/${id}/edit`)}>
               <Edit className="mr-2 h-4 w-4" />
               Chỉnh sửa
             </Button>
           )}
-          {checkPermission("customers", "delete") && (
+          {checkPermission("customer", "delete") && (
             <Button
               variant="destructive"
               onClick={() => setIsDeleteDialogOpen(true)}
@@ -118,7 +120,9 @@ export default function CustomerDetailPage() {
                 <TabsContent value="details" className="space-y-4">
                   <div className="grid grid-cols-2 gap-4 py-4">
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Điện thoại</p>
+                      <p className="text-sm font-medium text-gray-500">
+                        Điện thoại
+                      </p>
                       <p>{customer.phone || "N/A"}</p>
                     </div>
                     <div>
@@ -129,18 +133,24 @@ export default function CustomerDetailPage() {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-500">Loại</p>
-                      <p className="capitalize">{customer.type === 'customer' ? 'Khách hàng' : 'Tiềm năng'}</p>
+                      <p className="capitalize">
+                        {customer.type === "customer"
+                          ? "Khách hàng"
+                          : "Tiềm năng"}
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-500">
                         Trạng thái
                       </p>
-                      <p className="capitalize">{customer.status === 'active' ? 'Đang hoạt động' : 'Không hoạt động'}</p>
+                      <p className="capitalize">
+                        {customer.status === "active"
+                          ? "Đang hoạt động"
+                          : "Không hoạt động"}
+                      </p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-500">
-                        Nguồn
-                      </p>
+                      <p className="text-sm font-medium text-gray-500">Nguồn</p>
                       <p className="capitalize">{customer.source || "N/A"}</p>
                     </div>
                     <div>
@@ -152,7 +162,9 @@ export default function CustomerDetailPage() {
                   </div>
                   {customer.notes && (
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Ghi chú</p>
+                      <p className="text-sm font-medium text-gray-500">
+                        Ghi chú
+                      </p>
                       <p className="whitespace-pre-line mt-1">
                         {customer.notes}
                       </p>
@@ -162,7 +174,9 @@ export default function CustomerDetailPage() {
                 <TabsContent value="deals">
                   <div className="p-4 text-center">
                     <DollarSign className="h-12 w-12 mx-auto text-gray-300" />
-                    <h3 className="mt-2 text-lg font-semibold">Chưa có giao dịch nào</h3>
+                    <h3 className="mt-2 text-lg font-semibold">
+                      Chưa có giao dịch nào
+                    </h3>
                     <p className="text-sm text-gray-500">
                       Tạo giao dịch mới cho khách hàng này để theo dõi cơ hội.
                     </p>
@@ -177,7 +191,9 @@ export default function CustomerDetailPage() {
                 <TabsContent value="tasks">
                   <div className="p-4 text-center">
                     <CheckSquare className="h-12 w-12 mx-auto text-gray-300" />
-                    <h3 className="mt-2 text-lg font-semibold">Chưa có công việc nào</h3>
+                    <h3 className="mt-2 text-lg font-semibold">
+                      Chưa có công việc nào
+                    </h3>
                     <p className="text-sm text-gray-500">
                       Tạo công việc mới liên quan đến khách hàng này.
                     </p>
@@ -240,7 +256,8 @@ export default function CustomerDetailPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Bạn có chắc chắn không?</AlertDialogTitle>
             <AlertDialogDescription>
-              Hành động này sẽ xóa vĩnh viễn khách hàng {customer.name}. Bạn không thể hoàn tác việc này.
+              Hành động này sẽ xóa vĩnh viễn khách hàng {customer.name}. Bạn
+              không thể hoàn tác việc này.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { Customer, CustomerFormData } from '@/types/customer';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Customer, CustomerFormData } from "@/types/customer";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -13,22 +13,22 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Loader2 } from 'lucide-react';
-import api from '@/lib/api';
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2 } from "lucide-react";
+import { useUsers } from "@/hooks/use-users";
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
-  email: z.string().email({ message: 'Please enter a valid email address' }),
+  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
+  email: z.string().email({ message: "Please enter a valid email address" }),
   phone: z.string().optional(),
   company: z.string().optional(),
   type: z.string(),
@@ -44,40 +44,28 @@ interface CustomerFormProps {
   onCancel: () => void;
 }
 
-export default function CustomerForm({ customer, onSubmit, onCancel }: CustomerFormProps) {
+export default function CustomerForm({
+  customer,
+  onSubmit,
+  onCancel,
+}: CustomerFormProps) {
   const [loading, setLoading] = useState(false);
-  const [users, setUsers] = useState<{ id: string; name: string }[]>([]);
+  const { users, loading: usersLoading } = useUsers();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: customer?.name || '',
-      email: customer?.email || '',
-      phone: customer?.phone || '',
-      company: customer?.company || '',
-      type: customer?.type || 'lead',
-      status: customer?.status || 'active',
-      source: customer?.source || '',
-      assignedTo: customer?.assignedTo?._id || '',
-      notes: customer?.notes || '',
+      name: customer?.name || "",
+      email: customer?.email || "",
+      phone: customer?.phone || "",
+      company: customer?.company || "",
+      type: customer?.type || "lead",
+      status: customer?.status || "active",
+      source: customer?.source || "",
+      assignedTo: customer?.assignedTo?._id || "",
+      notes: customer?.notes || "",
     },
   });
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await api.get('/users');
-        setUsers(response.data.data.map((user: any) => ({
-          id: user._id,
-          name: user.name,
-        })));
-      } catch (error) {
-        console.error('Failed to fetch users:', error);
-      }
-    };
-    
-    fetchUsers();
-  }, []);
 
   async function handleSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
@@ -230,10 +218,18 @@ export default function CustomerForm({ customer, onSubmit, onCancel }: CustomerF
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  disabled={usersLoading}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select user" />
+                      {usersLoading ? (
+                        <div className="flex items-center">
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <span>Loading users...</span>
+                        </div>
+                      ) : (
+                        <SelectValue placeholder="Select user" />
+                      )}
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -249,7 +245,7 @@ export default function CustomerForm({ customer, onSubmit, onCancel }: CustomerF
             )}
           />
         </div>
-        
+
         <FormField
           control={form.control}
           name="notes"
@@ -269,19 +265,12 @@ export default function CustomerForm({ customer, onSubmit, onCancel }: CustomerF
         />
 
         <div className="flex justify-end space-x-4">
-          <Button 
-            variant="outline" 
-            type="button" 
-            onClick={onCancel}
-          >
+          <Button variant="outline" type="button" onClick={onCancel}>
             Cancel
           </Button>
-          <Button 
-            type="submit" 
-            disabled={loading}
-          >
+          <Button type="submit" disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {customer ? 'Update Customer' : 'Create Customer'}
+            {customer ? "Update Customer" : "Create Customer"}
           </Button>
         </div>
       </form>
