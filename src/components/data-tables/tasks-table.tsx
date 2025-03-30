@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { Task } from '@/types/task';
+import { Task } from "@/types/task";
 import {
   Table,
   TableBody,
@@ -8,10 +8,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { CheckCircle, Eye, Edit, Trash, Loader2 } from 'lucide-react';
-import { formatDate } from '@/lib/utils';
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, Eye, Edit, Trash, Loader2 } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 
 interface TasksTableProps {
   data: Task[];
@@ -37,50 +37,59 @@ export function TasksTable({
   // Helper functions
   const getPriorityBadgeClass = (priority: string) => {
     switch (priority) {
-      case 'high':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
-      case 'low':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+      case "high":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
+      case "medium":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
+      case "low":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
     }
   };
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
-      case 'completed':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'in_progress':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
-      case 'canceled':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+      case "completed":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
+      case "in_progress":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
+      case "todo":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
+      case "cancelled":
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
     }
   };
 
-  // Hàm dịch tên trạng thái 
+  // Hàm dịch tên trạng thái
   const getStatusName = (status: string) => {
     switch (status) {
-      case 'pending': return 'Cần làm';
-      case 'in_progress': return 'Đang thực hiện';
-      case 'completed': return 'Hoàn thành';
-      case 'canceled': return 'Đã hủy';
-      default: return status;
+      case "todo":
+        return "Cần làm";
+      case "in_progress":
+        return "Đang thực hiện";
+      case "completed":
+        return "Hoàn thành";
+      case "cancelled":
+        return "Đã hủy";
+      default:
+        return status;
     }
   };
 
   // Hàm dịch tên ưu tiên
   const getPriorityName = (priority: string) => {
     switch (priority) {
-      case 'high': return 'Cao';
-      case 'medium': return 'Trung bình';
-      case 'low': return 'Thấp';
-      default: return priority;
+      case "high":
+        return "Cao";
+      case "medium":
+        return "Trung bình";
+      case "low":
+        return "Thấp";
+      default:
+        return priority;
     }
   };
 
@@ -89,7 +98,11 @@ export function TasksTable({
     const dueDate = new Date(task.dueDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return dueDate < today && task.status !== 'completed' && task.status !== 'canceled';
+    return (
+      dueDate < today &&
+      task.status !== "completed" &&
+      task.status !== "cancelled"
+    );
   };
 
   return (
@@ -123,7 +136,12 @@ export function TasksTable({
             </TableRow>
           ) : (
             data.map((task) => (
-              <TableRow key={task._id} className={isTaskOverdue(task) ? 'bg-red-50 dark:bg-red-950/20' : ''}>
+              <TableRow
+                key={task._id}
+                className={
+                  isTaskOverdue(task) ? "bg-red-50 dark:bg-red-950/20" : ""
+                }
+              >
                 <TableCell className="font-medium">
                   {task.title}
                   {isTaskOverdue(task) && (
@@ -133,15 +151,17 @@ export function TasksTable({
                   )}
                   {task.relatedTo && (
                     <div className="text-xs text-muted-foreground mt-1">
-                      Liên quan đến: {task.relatedTo.model === 'Customer' 
-                        ? <span>Khách hàng {task.customer?.name || ''}</span>
-                        : <span>Cơ hội {task.deal?.title || ''}</span>
-                      }
+                      Liên quan đến:{" "}
+                      {task.relatedTo.model === "Customer" ? (
+                        <span>Khách hàng {task.customer?.name || ""}</span>
+                      ) : (
+                        <span>Cơ hội {task.deal?.title || ""}</span>
+                      )}
                     </div>
                   )}
                 </TableCell>
                 <TableCell>
-                  {task.dueDate ? formatDate(task.dueDate) : 'Không có'}
+                  {task.dueDate ? formatDate(task.dueDate) : "Không có"}
                 </TableCell>
                 <TableCell>
                   <span
@@ -161,21 +181,20 @@ export function TasksTable({
                     {getStatusName(task.status)}
                   </span>
                 </TableCell>
-                <TableCell>
-                  {task.assignedTo?.name || 'Chưa giao'}
-                </TableCell>
+                <TableCell>{task.assignedTo?.name || "Chưa giao"}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end space-x-2">
-                    {task.status !== 'completed' && task.status !== 'canceled' && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onComplete(task)}
-                        title="Đánh dấu hoàn thành"
-                      >
-                        <CheckCircle className="h-4 w-4" />
-                      </Button>
-                    )}
+                    {task.status !== "completed" &&
+                      task.status !== "cancelled" && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onComplete(task)}
+                          title="Đánh dấu hoàn thành"
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                        </Button>
+                      )}
                     <Button
                       variant="ghost"
                       size="icon"

@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { Task, TaskFormData } from '@/types/task';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Task, TaskFormData } from "@/types/task";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -13,35 +13,34 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
+  FormDescription,
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2 } from 'lucide-react';
-import { mapApiDataToTaskForm } from '@/utils/tasks-mapper';
-import { taskService } from '@/services/taskService';
-import api from '@/lib/api';
-import { Customer } from '@/types/customer';
-import { Deal } from '@/types/deal';
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Loader2 } from "lucide-react";
+import api from "@/lib/api";
 
 const formSchema = z.object({
-  title: z.string().min(2, { message: 'Title must be at least 2 characters' }),
+  title: z.string().min(2, { message: "Tiêu đề phải có ít nhất 2 ký tự" }),
   description: z.string().optional(),
   dueDate: z.string().optional(),
   priority: z.string(),
   status: z.string(),
   assignedTo: z.string().optional(),
-  relatedTo: z.object({
-    model: z.string().optional(),
-    id: z.string().optional(),
-  }).optional(),
+  relatedTo: z
+    .object({
+      model: z.string().optional(),
+      id: z.string().optional(),
+    })
+    .optional(),
   reminderDate: z.string().optional(),
   isRecurring: z.boolean().optional().default(false),
   recurringFrequency: z.string().optional().default("none"),
@@ -52,23 +51,25 @@ interface TaskFormProps {
   onSubmit: (data: TaskFormData) => Promise<void>;
   onCancel: () => void;
   preselectedRelation?: {
-    model: 'Customer' | 'Deal';
+    model: "Customer" | "Deal";
     id: string;
     name: string;
   };
   isSubmitting?: boolean;
 }
 
-export default function TaskForm({ 
-  task, 
-  onSubmit, 
-  onCancel, 
+export default function TaskForm({
+  task,
+  onSubmit,
+  onCancel,
   preselectedRelation,
-  isSubmitting = false 
+  isSubmitting = false,
 }: TaskFormProps) {
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<{ id: string; name: string }[]>([]);
-  const [customers, setCustomers] = useState<{ id: string; name: string }[]>([]);
+  const [customers, setCustomers] = useState<{ id: string; name: string }[]>(
+    []
+  );
   const [deals, setDeals] = useState<{ id: string; name: string }[]>([]);
   const [relatedModel, setRelatedModel] = useState<string | undefined>(
     task?.relatedTo?.model || preselectedRelation?.model || undefined
@@ -77,27 +78,31 @@ export default function TaskForm({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: task?.title || '',
-      description: task?.description || '',
-      dueDate: task?.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
-      priority: task?.priority || 'medium',
-      status: task?.status || 'pending',
-      assignedTo: task?.assignedTo?._id || '',
+      title: task?.title || "",
+      description: task?.description || "",
+      dueDate: task?.dueDate
+        ? new Date(task.dueDate).toISOString().split("T")[0]
+        : "",
+      priority: task?.priority || "medium",
+      status: task?.status || "todo",
+      assignedTo: task?.assignedTo?._id || "",
       relatedTo: {
-        model: task?.relatedTo?.model || preselectedRelation?.model || '',
-        id: task?.relatedTo?.id || preselectedRelation?.id || '',
+        model: task?.relatedTo?.model || preselectedRelation?.model || "",
+        id: task?.relatedTo?.id || preselectedRelation?.id || "",
       },
-      reminderDate: task?.reminderDate ? new Date(task.reminderDate).toISOString().split('T')[0] : '',
+      reminderDate: task?.reminderDate
+        ? new Date(task.reminderDate).toISOString().split("T")[0]
+        : "",
       isRecurring: task?.isRecurring || false,
-      recurringFrequency: task?.recurringFrequency || 'none',
+      recurringFrequency: task?.recurringFrequency || "none",
     },
   });
 
   useEffect(() => {
     // If a preselected relation is provided, update the form
     if (preselectedRelation && !task) {
-      form.setValue('relatedTo.model', preselectedRelation.model);
-      form.setValue('relatedTo.id', preselectedRelation.id);
+      form.setValue("relatedTo.model", preselectedRelation.model);
+      form.setValue("relatedTo.id", preselectedRelation.id);
       setRelatedModel(preselectedRelation.model);
     }
   }, [preselectedRelation, form, task]);
@@ -105,40 +110,48 @@ export default function TaskForm({
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await api.get('/users');
-        setUsers(response.data.data.map((user: any) => ({
-          id: user._id,
-          name: user.name,
-        })));
+        const response = await api.get("/users");
+        setUsers(
+          response.data.data.map((user: any) => ({
+            id: user._id,
+            name: user.name,
+          }))
+        );
       } catch (error) {
-        console.error('Failed to fetch users:', error);
+        console.error("Failed to fetch users:", error);
       }
     };
-    
+
     const fetchCustomers = async () => {
       try {
-        const response = await api.get('/customers?limit=100');
-        setCustomers(response.data.data.map((customer: Customer) => ({
-          id: customer._id,
-          name: customer.name + (customer.company ? ` (${customer.company})` : ''),
-        })));
+        const response = await api.get("/customers?limit=100");
+        setCustomers(
+          response.data.data.map((customer: any) => ({
+            id: customer._id,
+            name:
+              customer.name +
+              (customer.company ? ` (${customer.company})` : ""),
+          }))
+        );
       } catch (error) {
-        console.error('Failed to fetch customers:', error);
+        console.error("Failed to fetch customers:", error);
       }
     };
-    
+
     const fetchDeals = async () => {
       try {
-        const response = await api.get('/deals?limit=100');
-        setDeals(response.data.data.map((deal: Deal) => ({
-          id: deal._id,
-          name: deal.title,
-        })));
+        const response = await api.get("/deals?limit=100");
+        setDeals(
+          response.data.data.map((deal: any) => ({
+            id: deal._id,
+            name: deal.title,
+          }))
+        );
       } catch (error) {
-        console.error('Failed to fetch deals:', error);
+        console.error("Failed to fetch deals:", error);
       }
     };
-    
+
     fetchUsers();
     fetchCustomers();
     fetchDeals();
@@ -147,8 +160,8 @@ export default function TaskForm({
   // Update the related entity ID options when the model changes
   const handleRelatedModelChange = (value: string) => {
     setRelatedModel(value);
-    form.setValue('relatedTo.model', value);
-    form.setValue('relatedTo.id', ''); // Reset the ID when model changes
+    form.setValue("relatedTo.model", value);
+    form.setValue("relatedTo.id", ""); // Reset the ID when model changes
   };
 
   async function handleSubmit(values: z.infer<typeof formSchema>) {
@@ -158,7 +171,7 @@ export default function TaskForm({
       if (!values.relatedTo?.model || !values.relatedTo?.id) {
         values.relatedTo = undefined;
       }
-      
+
       await onSubmit(values as TaskFormData);
     } finally {
       setLoading(false);
@@ -223,10 +236,10 @@ export default function TaskForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="pending">Cần làm</SelectItem>
+                    <SelectItem value="todo">Cần làm</SelectItem>
                     <SelectItem value="in_progress">Đang thực hiện</SelectItem>
                     <SelectItem value="completed">Hoàn thành</SelectItem>
-                    <SelectItem value="canceled">Đã hủy</SelectItem>
+                    <SelectItem value="cancelled">Đã hủy</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -275,7 +288,6 @@ export default function TaskForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {/* <SelectItem value="">Chưa giao</SelectItem> */}
                     {users.map((user) => (
                       <SelectItem key={user.id} value={user.id}>
                         {user.name}
@@ -287,7 +299,7 @@ export default function TaskForm({
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="isRecurring"
@@ -308,7 +320,7 @@ export default function TaskForm({
               </FormItem>
             )}
           />
-          
+
           {form.watch("isRecurring") && (
             <FormField
               control={form.control}
@@ -338,7 +350,7 @@ export default function TaskForm({
             />
           )}
         </div>
-        
+
         <div className="space-y-4">
           <h3 className="font-medium">Thông tin liên kết</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -359,7 +371,6 @@ export default function TaskForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {/* <SelectItem value="">Không liên kết</SelectItem> */}
                       <SelectItem value="Customer">Khách hàng</SelectItem>
                       <SelectItem value="Deal">Cơ hội</SelectItem>
                     </SelectContent>
@@ -374,7 +385,10 @@ export default function TaskForm({
                 name="relatedTo.id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Chọn {relatedModel === 'Customer' ? 'khách hàng' : 'cơ hội'}</FormLabel>
+                    <FormLabel>
+                      Chọn{" "}
+                      {relatedModel === "Customer" ? "khách hàng" : "cơ hội"}
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
@@ -382,11 +396,17 @@ export default function TaskForm({
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={`Chọn ${relatedModel === 'Customer' ? 'khách hàng' : 'cơ hội'}`} />
+                          <SelectValue
+                            placeholder={`Chọn ${
+                              relatedModel === "Customer"
+                                ? "khách hàng"
+                                : "cơ hội"
+                            }`}
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {relatedModel === 'Customer'
+                        {relatedModel === "Customer"
                           ? customers.map((customer) => (
                               <SelectItem key={customer.id} value={customer.id}>
                                 {customer.name}
@@ -406,7 +426,7 @@ export default function TaskForm({
             )}
           </div>
         </div>
-        
+
         <FormField
           control={form.control}
           name="description"
@@ -426,20 +446,19 @@ export default function TaskForm({
         />
 
         <div className="flex justify-end space-x-4">
-          <Button 
-            variant="outline" 
-            type="button" 
+          <Button
+            variant="outline"
+            type="button"
             onClick={onCancel}
             disabled={loading || isSubmitting}
           >
             Hủy
           </Button>
-          <Button 
-            type="submit" 
-            disabled={loading || isSubmitting}
-          >
-            {(loading || isSubmitting) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {task ? 'Cập nhật công việc' : 'Tạo công việc'}
+          <Button type="submit" disabled={loading || isSubmitting}>
+            {(loading || isSubmitting) && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            {task ? "Cập nhật công việc" : "Tạo công việc"}
           </Button>
         </div>
       </form>

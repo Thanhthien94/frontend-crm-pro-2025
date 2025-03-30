@@ -1,9 +1,15 @@
 export interface Deal {
   _id: string;
-  title: string;  // API trả về field title
+  title: string; // Sử dụng title theo backend
   value: number;
   currency?: string;
-  stage: 'lead' | 'qualified' | 'proposal' | 'negotiation' | 'closed-won' | 'closed-lost';
+  stage:
+    | "lead"
+    | "qualified"
+    | "proposal"
+    | "negotiation"
+    | "closed-won"
+    | "closed-lost";
   expectedCloseDate?: string;
   customer: {
     _id: string;
@@ -19,7 +25,7 @@ export interface Deal {
   notes?: string;
   customFields?: Record<string, any>;
   probability?: number;
-  status: 'active' | 'inactive';
+  status: "active" | "inactive";
   organization?: string;
   products?: Array<{
     _id: string;
@@ -38,8 +44,9 @@ export interface Deal {
   updatedAt: string;
 }
 
+// Form data cũng sử dụng title thay vì name để phù hợp với API
 export interface DealFormData {
-  name: string;  // Form sử dụng name
+  title: string; // Sử dụng title theo backend
   value: number;
   stage: string;
   expectedCloseDate?: string;

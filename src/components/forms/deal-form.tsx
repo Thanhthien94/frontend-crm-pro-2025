@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { Deal, DealFormData } from '@/types/deal';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Deal, DealFormData } from "@/types/deal";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -13,49 +13,50 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Loader2 } from 'lucide-react';
-import api from '@/lib/api';
-import { mapApiDataToFormData } from '@/utils/deals-mapper';
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2 } from "lucide-react";
+import api from "@/lib/api";
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: 'Title must be at least 2 characters' }),
-  value: z.coerce.number().min(0, { message: 'Value must be a positive number' }),
+  title: z.string().min(2, { message: "Tiêu đề phải có ít nhất 2 ký tự" }),
+  value: z.coerce.number().min(0, { message: "Giá trị phải là số dương" }),
   stage: z.string(),
   expectedCloseDate: z.string().optional(),
   customer: z.string(),
   assignedTo: z.string().optional(),
   notes: z.string().optional(),
   probability: z.coerce.number().min(0).max(100).optional(),
-  status: z.string().default('active'),
+  status: z.string().default("active"),
 });
 
 interface DealFormProps {
   deal?: Deal;
-  initialFormData?: DealFormData & { name: string };
+  initialFormData?: DealFormData;
   onSubmit: (data: DealFormData) => Promise<void>;
   onCancel: () => void;
   isSubmitting?: boolean;
 }
 
-export default function DealForm({ 
-  deal, 
-  initialFormData, 
-  onSubmit, 
-  onCancel, 
-  isSubmitting = false 
+export default function DealForm({
+  deal,
+  initialFormData,
+  onSubmit,
+  onCancel,
+  isSubmitting = false,
 }: DealFormProps) {
   const [loading, setLoading] = useState(false);
-  const [customers, setCustomers] = useState<{ id: string; name: string }[]>([]);
+  const [customers, setCustomers] = useState<{ id: string; name: string }[]>(
+    []
+  );
   const [users, setUsers] = useState<{ id: string; name: string }[]>([]);
 
   // Tạo defaultValues từ initialFormData hoặc từ deal
@@ -63,31 +64,33 @@ export default function DealForm({
     if (initialFormData) {
       return initialFormData;
     }
-    
+
     if (deal) {
       return {
-        name: deal.title,
+        title: deal.title,
         value: deal.value,
         stage: deal.stage,
-        expectedCloseDate: deal.expectedCloseDate ? new Date(deal.expectedCloseDate).toISOString().split('T')[0] : '',
-        customer: deal.customer?._id || '',
-        assignedTo: deal.assignedTo?._id || '',
-        notes: deal.notes || '',
+        expectedCloseDate: deal.expectedCloseDate
+          ? new Date(deal.expectedCloseDate).toISOString().split("T")[0]
+          : "",
+        customer: deal.customer?._id || "",
+        assignedTo: deal.assignedTo?._id || "",
+        notes: deal.notes || "",
         probability: deal.probability || 0,
-        status: deal.status || 'active',
+        status: deal.status || "active",
       };
     }
-    
+
     return {
-      name: '',
+      title: "",
       value: 0,
-      stage: 'lead',
-      expectedCloseDate: '',
-      customer: '',
-      assignedTo: '',
-      notes: '',
+      stage: "lead",
+      expectedCloseDate: "",
+      customer: "",
+      assignedTo: "",
+      notes: "",
       probability: 0,
-      status: 'active',
+      status: "active",
     };
   };
 
@@ -100,30 +103,36 @@ export default function DealForm({
     const fetchCustomers = async () => {
       try {
         setLoading(true);
-        const response = await api.get('/customers?limit=100');
-        setCustomers(response.data.data.map((customer: any) => ({
-          id: customer._id,
-          name: customer.name + (customer.company ? ` (${customer.company})` : ''),
-        })));
+        const response = await api.get("/customers?limit=100");
+        setCustomers(
+          response.data.data.map((customer: any) => ({
+            id: customer._id,
+            name:
+              customer.name +
+              (customer.company ? ` (${customer.company})` : ""),
+          }))
+        );
       } catch (error) {
-        console.error('Failed to fetch customers:', error);
+        console.error("Failed to fetch customers:", error);
       } finally {
         setLoading(false);
       }
     };
-    
+
     const fetchUsers = async () => {
       try {
-        const response = await api.get('/users');
-        setUsers(response.data.data.map((user: any) => ({
-          id: user._id,
-          name: user.name,
-        })));
+        const response = await api.get("/users");
+        setUsers(
+          response.data.data.map((user: any) => ({
+            id: user._id,
+            name: user.name,
+          }))
+        );
       } catch (error) {
-        console.error('Failed to fetch users:', error);
+        console.error("Failed to fetch users:", error);
       }
     };
-    
+
     fetchCustomers();
     fetchUsers();
   }, []);
@@ -132,7 +141,7 @@ export default function DealForm({
     try {
       await onSubmit(values as DealFormData);
     } catch (error) {
-      console.error('Error in form submission:', error);
+      console.error("Error in form submission:", error);
     }
   }
 
@@ -142,12 +151,15 @@ export default function DealForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="name"
+            name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Deal Title*</FormLabel>
+                <FormLabel>Tiêu đề*</FormLabel>
                 <FormControl>
-                  <Input placeholder="E.g. Enterprise License" {...field} />
+                  <Input
+                    placeholder="Ví dụ: Bản quyền Doanh nghiệp"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -158,9 +170,13 @@ export default function DealForm({
             name="value"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Value*</FormLabel>
+                <FormLabel>Giá trị*</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="Deal value" {...field} />
+                  <Input
+                    type="number"
+                    placeholder="Giá trị thương vụ"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -171,23 +187,27 @@ export default function DealForm({
             name="stage"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Stage*</FormLabel>
+                <FormLabel>Giai đoạn*</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select stage" />
+                      <SelectValue placeholder="Chọn giai đoạn" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="lead">Lead</SelectItem>
-                    <SelectItem value="qualified">Qualified</SelectItem>
-                    <SelectItem value="proposal">Proposal</SelectItem>
-                    <SelectItem value="negotiation">Negotiation</SelectItem>
-                    <SelectItem value="closed-won">Closed (Won)</SelectItem>
-                    <SelectItem value="closed-lost">Closed (Lost)</SelectItem>
+                    <SelectItem value="lead">Tiềm năng</SelectItem>
+                    <SelectItem value="qualified">Đủ điều kiện</SelectItem>
+                    <SelectItem value="proposal">Đề xuất</SelectItem>
+                    <SelectItem value="negotiation">Đàm phán</SelectItem>
+                    <SelectItem value="closed-won">
+                      Đã đóng (Thành công)
+                    </SelectItem>
+                    <SelectItem value="closed-lost">
+                      Đã đóng (Thất bại)
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -199,7 +219,7 @@ export default function DealForm({
             name="expectedCloseDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Expected Close Date</FormLabel>
+                <FormLabel>Ngày dự kiến đóng</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -212,7 +232,7 @@ export default function DealForm({
             name="customer"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Customer*</FormLabel>
+                <FormLabel>Khách hàng*</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
@@ -223,10 +243,10 @@ export default function DealForm({
                       {loading ? (
                         <div className="flex items-center">
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          <span>Loading customers...</span>
+                          <span>Đang tải khách hàng...</span>
                         </div>
                       ) : (
-                        <SelectValue placeholder="Select customer" />
+                        <SelectValue placeholder="Chọn khách hàng" />
                       )}
                     </SelectTrigger>
                   </FormControl>
@@ -247,18 +267,17 @@ export default function DealForm({
             name="assignedTo"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Assigned To</FormLabel>
+                <FormLabel>Người phụ trách</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select user" />
+                      <SelectValue placeholder="Chọn người phụ trách" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {/* <SelectItem value="unassigned">Unassigned</SelectItem> */}
                     {users.map((user) => (
                       <SelectItem key={user.id} value={user.id}>
                         {user.name}
@@ -275,14 +294,14 @@ export default function DealForm({
             name="probability"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Probability (%)</FormLabel>
+                <FormLabel>Xác suất (%)</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="number" 
-                    min={0} 
-                    max={100} 
-                    placeholder="Probability" 
-                    {...field} 
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    placeholder="Xác suất thành công"
+                    {...field}
                   />
                 </FormControl>
                 <FormMessage />
@@ -294,19 +313,19 @@ export default function DealForm({
             name="status"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Status</FormLabel>
+                <FormLabel>Trạng thái</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
+                      <SelectValue placeholder="Chọn trạng thái" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="active">Đang hoạt động</SelectItem>
+                    <SelectItem value="inactive">Không hoạt động</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -314,16 +333,16 @@ export default function DealForm({
             )}
           />
         </div>
-        
+
         <FormField
           control={form.control}
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Notes</FormLabel>
+              <FormLabel>Ghi chú</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Add notes about this deal"
+                  placeholder="Thêm ghi chú về thương vụ này"
                   className="resize-none h-32"
                   {...field}
                 />
@@ -334,20 +353,17 @@ export default function DealForm({
         />
 
         <div className="flex justify-end space-x-4">
-          <Button 
-            variant="outline" 
-            type="button" 
+          <Button
+            variant="outline"
+            type="button"
             onClick={onCancel}
             disabled={isSubmitting}
           >
-            Cancel
+            Hủy
           </Button>
-          <Button 
-            type="submit" 
-            disabled={isSubmitting || loading}
-          >
+          <Button type="submit" disabled={isSubmitting || loading}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {deal ? 'Update Deal' : 'Create Deal'}
+            {deal ? "Cập nhật thương vụ" : "Tạo thương vụ"}
           </Button>
         </div>
       </form>

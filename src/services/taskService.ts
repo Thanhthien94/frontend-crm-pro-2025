@@ -1,6 +1,5 @@
 import api from "@/lib/api";
 import { TaskFormData } from "@/types/task";
-import { mapTaskFormToApiData } from "@/utils/tasks-mapper";
 
 export const taskService = {
   // Lấy danh sách tasks với các filter
@@ -31,14 +30,14 @@ export const taskService = {
 
   // Tạo task mới
   createTask: async (taskData: TaskFormData) => {
-    const apiData = mapTaskFormToApiData(taskData);
-    return api.post("/tasks", apiData);
+    // Không cần map vì frontend đã sử dụng cùng cấu trúc với backend
+    return api.post("/tasks", taskData);
   },
 
   // Cập nhật task
   updateTask: async (id: string, taskData: Partial<TaskFormData>) => {
-    const apiData = mapTaskFormToApiData(taskData as TaskFormData);
-    return api.patch(`/tasks/${id}`, apiData);
+    // Không cần map vì frontend đã sử dụng cùng cấu trúc với backend
+    return api.patch(`/tasks/${id}`, taskData);
   },
 
   // Xóa task
@@ -62,5 +61,16 @@ export const taskService = {
   // Lấy tasks theo đối tượng liên quan
   getRelatedTasks: async (entityType: string, entityId: string) => {
     return api.get(`/tasks/related/${entityType}/${entityId}`);
+  },
+
+  // Lấy tasks được gán cho người dùng hiện tại
+  getMyTasks: async (filters = {}) => {
+    const apiFilters = { ...filters, my: "true" };
+
+    const queryParams = new URLSearchParams({
+      ...apiFilters,
+    });
+
+    return api.get(`/tasks?${queryParams}`);
   },
 };

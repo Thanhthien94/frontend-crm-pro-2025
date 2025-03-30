@@ -1,38 +1,28 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useTasks } from '@/hooks/use-tasks';
-import { Task, TaskFormData } from '@/types/task';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useTasks } from "@/hooks/use-tasks";
+import { Task, TaskFormData } from "@/types/task";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { PlusCircle, Search, Calendar, AlertTriangle } from 'lucide-react';
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { PlusCircle, Search, Calendar, AlertTriangle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,24 +32,24 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import TaskForm from '@/components/forms/task-form';
-import { TasksTable } from '@/components/data-tables/tasks-table';
-import { usePermission } from '@/hooks/use-permission';
+} from "@/components/ui/alert-dialog";
+import TaskForm from "@/components/forms/task-form";
+import { TasksTable } from "@/components/data-tables/tasks-table";
+import { usePermission } from "@/hooks/use-permission";
 
 export default function TasksPage() {
   const router = useRouter();
   const { checkPermission } = usePermission();
-  
+
   // State management
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isCompleteDialogOpen, setIsCompleteDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [currentFilters, setCurrentFilters] = useState<Record<string, any>>({});
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
-  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("all");
+
   // Fetch tasks data using custom hook
   const {
     tasks,
@@ -119,38 +109,38 @@ export default function TasksPage() {
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     const newFilters: Record<string, any> = { ...currentFilters };
-    
+
     // Clear previous status filters
     delete newFilters.status;
     delete newFilters.overdue;
     delete newFilters.upcoming;
     delete newFilters.my;
-    
+
     // Apply new filters based on tab
     switch (value) {
-      case 'overdue':
-        newFilters.overdue = 'true';
+      case "overdue":
+        newFilters.overdue = "true";
         break;
-      case 'today':
-        newFilters.upcoming = 'true';
+      case "today":
+        newFilters.upcoming = "true";
         break;
-      case 'my':
-        newFilters.my = 'true';
+      case "my":
+        newFilters.my = "true";
         break;
-      case 'pending':
-        newFilters.status = 'pending';
+      case "todo":
+        newFilters.status = "todo";
         break;
-      case 'in_progress':
-        newFilters.status = 'in_progress';
+      case "in_progress":
+        newFilters.status = "in_progress";
         break;
-      case 'completed':
-        newFilters.status = 'completed';
+      case "completed":
+        newFilters.status = "completed";
         break;
-      case 'canceled':
-        newFilters.status = 'canceled';
+      case "cancelled":
+        newFilters.status = "cancelled";
         break;
     }
-    
+
     setCurrentFilters(newFilters);
     fetchTasks(1, newFilters);
   };
@@ -158,7 +148,7 @@ export default function TasksPage() {
   // Filtering functions
   const handlePriorityFilter = (priority: string) => {
     const newFilters = { ...currentFilters };
-    if (priority && priority !== 'all') {
+    if (priority && priority !== "all") {
       newFilters.priority = priority;
     } else {
       delete newFilters.priority;
@@ -179,13 +169,13 @@ export default function TasksPage() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleSearch();
     }
   };
 
-  const canUpdateTask = checkPermission('tasks', 'update');
-  const canDeleteTask = checkPermission('tasks', 'delete');
+  const canUpdateTask = checkPermission("tasks", "update");
+  const canDeleteTask = checkPermission("tasks", "delete");
 
   return (
     <div className="space-y-6">
@@ -197,8 +187,8 @@ export default function TasksPage() {
             Quản lý các công việc và hoạt động
           </p>
         </div>
-        
-        {checkPermission('tasks', 'create') && (
+
+        {checkPermission("tasks", "create") && (
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Thêm công việc
@@ -214,11 +204,18 @@ export default function TasksPage() {
         <CardContent>
           {/* Tabs and Filters */}
           <div className="space-y-4">
-            <Tabs defaultValue="all" value={activeTab} onValueChange={handleTabChange}>
+            <Tabs
+              defaultValue="all"
+              value={activeTab}
+              onValueChange={handleTabChange}
+            >
               <TabsList>
                 <TabsTrigger value="all">Tất cả</TabsTrigger>
                 <TabsTrigger value="my">Của tôi</TabsTrigger>
-                <TabsTrigger value="overdue" className="flex items-center gap-1">
+                <TabsTrigger
+                  value="overdue"
+                  className="flex items-center gap-1"
+                >
                   <AlertTriangle className="h-3 w-3" />
                   Quá hạn
                 </TabsTrigger>
@@ -226,13 +223,13 @@ export default function TasksPage() {
                   <Calendar className="h-3 w-3" />
                   Hôm nay
                 </TabsTrigger>
-                <TabsTrigger value="pending">Cần làm</TabsTrigger>
+                <TabsTrigger value="todo">Cần làm</TabsTrigger>
                 <TabsTrigger value="in_progress">Đang thực hiện</TabsTrigger>
                 <TabsTrigger value="completed">Hoàn thành</TabsTrigger>
-                <TabsTrigger value="canceled">Đã hủy</TabsTrigger>
+                <TabsTrigger value="cancelled">Đã hủy</TabsTrigger>
               </TabsList>
             </Tabs>
-          
+
             <div className="flex flex-col sm:flex-row gap-4 mb-4">
               <div className="flex gap-2 flex-1">
                 <Input
@@ -250,7 +247,8 @@ export default function TasksPage() {
                 <span className="text-sm text-muted-foreground">Ưu tiên:</span>
                 <Select
                   onValueChange={handlePriorityFilter}
-                  defaultValue={currentFilters.priority || 'all'}>
+                  defaultValue={currentFilters.priority || "all"}
+                >
                   <SelectTrigger className="w-[140px]">
                     <SelectValue placeholder="Tất cả mức độ" />
                   </SelectTrigger>
@@ -264,9 +262,9 @@ export default function TasksPage() {
               </div>
             </div>
           </div>
-          
+
           {/* Tasks Table */}
-          <TasksTable 
+          <TasksTable
             data={tasks}
             loading={loading}
             onView={handleViewTask}
@@ -276,7 +274,7 @@ export default function TasksPage() {
             canUpdate={canUpdateTask}
             canDelete={canDeleteTask}
           />
-          
+
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex justify-between items-center mt-4">
@@ -326,12 +324,16 @@ export default function TasksPage() {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Bạn có chắc chắn?</AlertDialogTitle>
             <AlertDialogDescription>
-              Hành động này sẽ xóa vĩnh viễn công việc "{selectedTask?.title}". Không thể hoàn tác thao tác này.
+              Hành động này sẽ xóa vĩnh viễn công việc "{selectedTask?.title}".
+              Không thể hoàn tác thao tác này.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -347,12 +349,16 @@ export default function TasksPage() {
       </AlertDialog>
 
       {/* Complete Confirmation Dialog */}
-      <AlertDialog open={isCompleteDialogOpen} onOpenChange={setIsCompleteDialogOpen}>
+      <AlertDialog
+        open={isCompleteDialogOpen}
+        onOpenChange={setIsCompleteDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Hoàn thành công việc</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn đánh dấu công việc "{selectedTask?.title}" là đã hoàn thành?
+              Bạn có chắc chắn muốn đánh dấu công việc "{selectedTask?.title}"
+              là đã hoàn thành?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
