@@ -4,7 +4,6 @@ import {
   UserResponse,
   UserCreateData,
   UserUpdateData,
-  InviteUserData,
 } from "@/services/userService";
 import { toast } from "sonner";
 
@@ -30,37 +29,7 @@ export interface UsersState {
   error: string | null;
 }
 
-interface UseUsersFunctions {
-  fetchUsers: (
-    page?: number,
-    filters?: Record<string, any>,
-    force?: boolean
-  ) => Promise<UserBasicInfo[]>;
-  getUserRoles: () => Promise<string[]>;
-  getUser: (id: string) => Promise<UserResponse>;
-  createUser: (data: UserCreateData) => Promise<UserResponse>;
-  updateUser: (id: string, data: UserUpdateData) => Promise<UserResponse>;
-  deleteUser: (id: string) => Promise<boolean>;
-  changeUserRole: (id: string, role: string) => Promise<UserResponse>;
-  activateUser: (id: string) => Promise<UserResponse>;
-  deactivateUser: (id: string) => Promise<UserResponse>;
-  inviteUser: (data: InviteUserData) => Promise<any>;
-  updateCurrentUser: (
-    data: Partial<{ name: string; email: string }>
-  ) => Promise<UserResponse>;
-  updatePassword: (
-    currentPassword: string,
-    newPassword: string
-  ) => Promise<any>;
-  getUserById: (id: string) => UserBasicInfo | null;
-  changePage: (newPage: number) => void;
-  applyFilters: (filters: Record<string, any>) => void;
-}
-
-export function useUsers(
-  initialPage = 1,
-  pageSize = 10
-): UsersState & UseUsersFunctions {
+export function useUsers(initialPage = 1, pageSize = 10) {
   const [state, setState] = useState<UsersState>({
     users: [],
     allUsers: [],
@@ -405,181 +374,42 @@ export function useUsers(
   };
 
   /**
-   * Kích hoạt user
+   * Gán vai trò cho người dùng
    */
-  const activateUser = async (id: string) => {
+  const assignRoleToUser = async (userId: string, roleId: string) => {
     try {
-      const response = await userService.activateUser(id);
+      const response = await userService.assignRoleToUser(roleId, userId);
       const updatedUser = response.data.data;
 
-      // Cập nhật cache
-      userCache.current[id] = updatedUser;
+      // Cập nhật cache và state
+      if (updatedUser) {
+        userCache.current[userId] = updatedUser;
 
-      // Cập nhật state
-      setPartialState({
-        allUsers: state.allUsers.map((user) =>
-          user._id === id || user.id === id ? updatedUser : user
-        ),
-        users: state.users.map((user) => {
-          if (user.id === id) {
-            return {
-              ...user,
-              status: "active",
-            };
-          }
-          return user;
-        }),
-      });
-
-      toast.success("Thành công", { description: "Đã kích hoạt người dùng" });
-      return updatedUser;
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.error || "Không thể kích hoạt người dùng";
-      toast.error("Lỗi", { description: errorMessage });
-      throw error;
-    }
-  };
-
-  /**
-   * Vô hiệu hóa user
-   */
-  const deactivateUser = async (id: string) => {
-    try {
-      const response = await userService.deactivateUser(id);
-      const updatedUser = response.data.data;
-
-      // Cập nhật cache
-      userCache.current[id] = updatedUser;
-
-      // Cập nhật state
-      setPartialState({
-        allUsers: state.allUsers.map((user) =>
-          user._id === id || user.id === id ? updatedUser : user
-        ),
-        users: state.users.map((user) => {
-          if (user.id === id) {
-            return {
-              ...user,
-              status: "inactive",
-            };
-          }
-          return user;
-        }),
-      });
-
-      toast.success("Thành công", { description: "Đã vô hiệu hóa người dùng" });
-      return updatedUser;
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.error || "Không thể vô hiệu hóa người dùng";
-      toast.error("Lỗi", { description: errorMessage });
-      throw error;
-    }
-  };
-
-  /**
-   * Thay đổi vai trò người dùng
-   */
-  const changeUserRole = async (id: string, role: string) => {
-    try {
-      const response = await userService.changeUserRole(id, role);
-      const updatedUser = response.data.data;
-
-      // Cập nhật cache
-      userCache.current[id] = updatedUser;
-
-      // Cập nhật state
-      setPartialState({
-        allUsers: state.allUsers.map((user) =>
-          user._id === id || user.id === id ? updatedUser : user
-        ),
-        users: state.users.map((user) => {
-          if (user.id === id) {
-            return { ...user, role };
-          }
-          return user;
-        }),
-      });
+        // Cập nhật state
+        setPartialState({
+          allUsers: state.allUsers.map((user) =>
+            user._id === userId || user.id === userId ? updatedUser : user
+          ),
+          users: state.users.map((user) => {
+            if (user.id === userId) {
+              return {
+                ...user,
+                role: updatedUser.role,
+              };
+            }
+            return user;
+          }),
+        });
+      }
 
       toast.success("Thành công", {
-        description: "Đã thay đổi vai trò người dùng",
+        description: "Đã gán vai trò cho người dùng",
       });
+
       return updatedUser;
     } catch (error: any) {
       const errorMessage =
-        error.response?.data?.error || "Không thể thay đổi vai trò người dùng";
-      toast.error("Lỗi", { description: errorMessage });
-      throw error;
-    }
-  };
-
-  /**
-   * Mời người dùng mới
-   */
-  const inviteUser = async (data: InviteUserData) => {
-    try {
-      const response = await userService.inviteUser(data);
-      toast.success("Thành công", {
-        description: "Đã gửi lời mời cho người dùng",
-      });
-
-      // Refresh lại danh sách để cập nhật
-      await fetchUsers(
-        state.pagination.currentPage,
-        currentFilters.current,
-        true
-      );
-
-      return response.data.data;
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.error || "Không thể gửi lời mời cho người dùng";
-      toast.error("Lỗi", { description: errorMessage });
-      throw error;
-    }
-  };
-
-  /**
-   * Cập nhật thông tin người dùng hiện tại
-   */
-  const updateCurrentUser = async (
-    data: Partial<{ name: string; email: string }>
-  ) => {
-    try {
-      const response = await userService.updateCurrentUser(data);
-      const updatedUser = response.data.data;
-
-      toast.success("Thành công", {
-        description: "Đã cập nhật thông tin của bạn",
-      });
-      return updatedUser;
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.error || "Không thể cập nhật thông tin";
-      toast.error("Lỗi", { description: errorMessage });
-      throw error;
-    }
-  };
-
-  /**
-   * Cập nhật mật khẩu người dùng hiện tại
-   */
-  const updatePassword = async (
-    currentPassword: string,
-    newPassword: string
-  ) => {
-    try {
-      const response = await userService.updatePassword({
-        currentPassword,
-        newPassword,
-      });
-
-      toast.success("Thành công", { description: "Đã cập nhật mật khẩu" });
-      return response.data;
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.error || "Không thể cập nhật mật khẩu";
+        error.response?.data?.error || "Không thể gán vai trò cho người dùng";
       toast.error("Lỗi", { description: errorMessage });
       throw error;
     }
@@ -624,18 +454,14 @@ export function useUsers(
 
     // Phương thức
     fetchUsers,
+    fetchAllUsers,
     getUserRoles,
     getUser,
+    getUserById,
     createUser,
     updateUser,
     deleteUser,
-    changeUserRole,
-    activateUser,
-    deactivateUser,
-    inviteUser,
-    updateCurrentUser,
-    updatePassword,
-    getUserById,
+    assignRoleToUser,
     changePage,
     applyFilters,
   };

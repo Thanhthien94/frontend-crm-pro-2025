@@ -22,7 +22,6 @@ export interface UserCreateData {
   email: string;
   password: string;
   role?: string;
-  organization?: string;
 }
 
 export interface UserUpdateData {
@@ -30,18 +29,6 @@ export interface UserUpdateData {
   email?: string;
   role?: string;
   status?: string;
-  organization?: string;
-}
-
-export interface InviteUserData {
-  email: string;
-  role?: string;
-  name?: string;
-}
-
-export interface AcceptInvitationData {
-  password: string;
-  name?: string;
 }
 
 export interface PasswordUpdateData {
@@ -72,7 +59,7 @@ export const userService = {
    * @returns Promise với tất cả dữ liệu người dùng
    */
   getAllUsers: async () => {
-    return api.get('/users?limit=100');
+    return api.get("/users?limit=100");
   },
 
   /**
@@ -89,7 +76,7 @@ export const userService = {
    * @returns Promise với dữ liệu người dùng hiện tại
    */
   getCurrentUser: async () => {
-    return api.get(`/users/me`);
+    return api.get(`/auth/me`);
   },
 
   /**
@@ -112,24 +99,6 @@ export const userService = {
   },
 
   /**
-   * Cập nhật thông tin người dùng hiện tại
-   * @param userData Dữ liệu cần cập nhật
-   * @returns Promise với dữ liệu người dùng đã cập nhật
-   */
-  updateCurrentUser: async (userData: Partial<{ name: string; email: string }>) => {
-    return api.put(`/users/profile`, userData);
-  },
-
-  /**
-   * Cập nhật mật khẩu người dùng hiện tại
-   * @param passwords Mật khẩu hiện tại và mới
-   * @returns Promise với kết quả cập nhật
-   */
-  updatePassword: async (passwords: PasswordUpdateData) => {
-    return api.put(`/users/updatepassword`, passwords);
-  },
-
-  /**
    * Xóa người dùng
    * @param id ID của người dùng
    * @returns Promise với kết quả xóa
@@ -139,57 +108,103 @@ export const userService = {
   },
 
   /**
-   * Vô hiệu hóa người dùng
-   * @param id ID của người dùng
-   * @returns Promise với kết quả vô hiệu hóa
+   * Lấy danh sách quyền
+   * @returns Promise với danh sách quyền
    */
-  deactivateUser: async (id: string) => {
-    return api.patch(`/users/${id}/deactivate`);
+  getPermissionsList: async () => {
+    return api.get(`/permissions/list`);
   },
 
   /**
-   * Kích hoạt người dùng
-   * @param id ID của người dùng
-   * @returns Promise với kết quả kích hoạt
-   */
-  activateUser: async (id: string) => {
-    return api.patch(`/users/${id}/activate`);
-  },
-
-  /**
-   * Thay đổi vai trò người dùng
-   * @param id ID của người dùng
-   * @param role Vai trò mới
-   * @returns Promise với kết quả thay đổi vai trò
-   */
-  changeUserRole: async (id: string, role: string) => {
-    return api.patch(`/users/${id}/role`, { role });
-  },
-
-  /**
-   * Lấy danh sách vai trò có thể gán
+   * Lấy danh sách vai trò
    * @returns Promise với danh sách vai trò
    */
   getUserRoles: async () => {
-    return api.get(`/users/roles`);
+    return api.get(`/permissions/roles`);
   },
 
   /**
-   * Mời người dùng tham gia tổ chức
-   * @param data Thông tin mời
-   * @returns Promise với kết quả mời
+   * Tạo vai trò mới
+   * @param roleData Dữ liệu vai trò mới
+   * @returns Promise với dữ liệu vai trò đã tạo
    */
-  inviteUser: async (data: InviteUserData) => {
-    return api.post(`/users/invite`, data);
+  createRole: async (roleData: {
+    name: string;
+    slug: string;
+    permissions: string[];
+    description?: string;
+    isDefault?: boolean;
+  }) => {
+    return api.post(`/permissions/roles`, roleData);
   },
 
   /**
-   * Chấp nhận lời mời tham gia tổ chức
-   * @param token Token mời
-   * @param data Thông tin chấp nhận
-   * @returns Promise với kết quả chấp nhận
+   * Cập nhật vai trò
+   * @param id ID của vai trò
+   * @param roleData Dữ liệu cần cập nhật
+   * @returns Promise với dữ liệu vai trò đã cập nhật
    */
-  acceptInvitation: async (token: string, data: AcceptInvitationData) => {
-    return api.post(`/users/accept-invitation/${token}`, data);
+  updateRole: async (
+    id: string,
+    roleData: {
+      name?: string;
+      permissions?: string[];
+      description?: string;
+      isDefault?: boolean;
+    }
+  ) => {
+    return api.patch(`/permissions/roles/${id}`, roleData);
+  },
+
+  /**
+   * Xóa vai trò
+   * @param id ID của vai trò
+   * @returns Promise với kết quả xóa
+   */
+  deleteRole: async (id: string) => {
+    return api.delete(`/permissions/roles/${id}`);
+  },
+
+  /**
+   * Gán vai trò cho người dùng
+   * @param roleId ID của vai trò
+   * @param userId ID của người dùng
+   * @returns Promise với kết quả gán
+   */
+  assignRoleToUser: async (roleId: string, userId: string) => {
+    return api.post(`/permissions/roles/${roleId}/assign`, {
+      userId,
+    });
+  },
+
+  /**
+   * Thu hồi vai trò từ người dùng
+   * @param roleId ID của vai trò
+   * @param userId ID của người dùng
+   * @returns Promise với kết quả thu hồi
+   */
+  revokeRoleFromUser: async (roleId: string, userId: string) => {
+    return api.post(`/permissions/roles/${roleId}/revoke`, {
+      userId,
+    });
+  },
+
+  /**
+   * Yêu cầu đặt lại mật khẩu
+   * @param email Email của người dùng
+   * @returns Promise với kết quả yêu cầu
+   */
+  forgotPassword: async (email: string) => {
+    return api.post(`/auth/forgot-password`, { email });
+  },
+
+  /**
+   * Đặt lại mật khẩu
+   * @param token Token đặt lại mật khẩu
+   * @param password Mật khẩu mới
+   * @returns Promise với kết quả đặt lại
+   */
+  resetPassword: async (token: string, password: string) => {
+    return api.post(`/auth/reset-password`, { token, password });
   },
 };
