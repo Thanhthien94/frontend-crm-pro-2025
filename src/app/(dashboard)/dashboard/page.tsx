@@ -117,7 +117,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-center h-[calc(100vh-120px)]">
         <div className="flex flex-col items-center gap-2">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Loading dashboard data...</p>
+          <p className="text-muted-foreground">Đang tải dữ liệu bảng điều khiển...</p>
         </div>
       </div>
     );
@@ -127,13 +127,13 @@ export default function DashboardPage() {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-120px)]">
         <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
-        <p>Failed to load dashboard data</p>
+        <p>Không thể tải dữ liệu bảng điều khiển</p>
         <Button 
           onClick={() => window.location.reload()} 
           variant="outline" 
           className="mt-4"
         >
-          Try Again
+          Thử lại
         </Button>
       </div>
     );
@@ -148,7 +148,7 @@ export default function DashboardPage() {
         <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => router.push('/customers')}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Total Customers
+              Tổng số khách hàng
             </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -157,7 +157,7 @@ export default function DashboardPage() {
               {stats.customers?.total || 0}
             </div>
             <p className="text-xs text-muted-foreground">
-              {stats.customers?.lead || 0} leads, {stats.customers?.prospect || 0} prospects
+              {stats.customers?.lead || 0} tiềm năng, {stats.customers?.prospect || 0} triển vọng
             </p>
           </CardContent>
         </Card>
@@ -165,7 +165,7 @@ export default function DashboardPage() {
         {/* Active Deals Card */}
         <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => router.push('/deals')}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Deals</CardTitle>
+            <CardTitle className="text-sm font-medium">Giao dịch đang hoạt động</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -173,7 +173,7 @@ export default function DashboardPage() {
               {stats.sales?.pipelineDealCount || totalDeals || 0}
             </div>
             <p className="text-xs text-muted-foreground">
-              ${stats.sales?.pipelineValue?.toLocaleString() || '0'} total value
+              ${stats.sales?.pipelineValue?.toLocaleString() || '0'} tổng giá trị
             </p>
           </CardContent>
         </Card>
@@ -181,7 +181,7 @@ export default function DashboardPage() {
         {/* Tasks Card */}
         <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => router.push('/tasks')}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tasks</CardTitle>
+            <CardTitle className="text-sm font-medium">Công việc</CardTitle>
             <CheckSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -193,7 +193,7 @@ export default function DashboardPage() {
                stats.tasks?.total || 0}
             </div>
             <p className="text-xs text-muted-foreground">
-              {stats.tasks?.overdue || 0} overdue, {stats.tasks?.dueToday || 0} due today
+              {stats.tasks?.overdue || 0} quá hạn, {stats.tasks?.dueToday || 0} đến hạn hôm nay
             </p>
           </CardContent>
         </Card>
@@ -202,7 +202,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Conversion Rate
+              Tỷ lệ chuyển đổi
             </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -211,7 +211,7 @@ export default function DashboardPage() {
               {stats.sales?.growthRate || 0}%
             </div>
             <p className="text-xs text-muted-foreground">
-              {stats.sales?.thisMonthWonDeals || 0} won deals this month
+              {stats.sales?.thisMonthWonDeals || 0} giao dịch thành công tháng này
             </p>
           </CardContent>
         </Card>
@@ -219,15 +219,15 @@ export default function DashboardPage() {
 
       <Tabs defaultValue="deals">
         <TabsList>
-          <TabsTrigger value="deals">Deals Pipeline</TabsTrigger>
-          <TabsTrigger value="tasks">Tasks</TabsTrigger>
+          <TabsTrigger value="deals">Giao dịch</TabsTrigger>
+          <TabsTrigger value="tasks">Công việc</TabsTrigger>
         </TabsList>
         <TabsContent value="deals" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Deals by Stage</CardTitle>
+              <CardTitle>Giao dịch theo giai đoạn</CardTitle>
               <CardDescription>
-                Overview of your current sales pipeline
+                Tổng quan về đường dẫn bán hàng hiện tại
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -235,42 +235,54 @@ export default function DashboardPage() {
                 <div className="space-y-2">
                   {Object.entries(stats.dealsByStage)
                     .filter(([key]) => !["total", "totalValue"].includes(key))
-                    .map(([stage, data]) => (
-                      <div key={stage} className="flex items-center">
-                        <div className="w-40 font-medium capitalize">
-                          {stage.replace("-", " ")}
-                        </div>
-                        <div className="flex-1">
-                          <div className="h-2 bg-muted rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-primary"
-                              style={{
-                                width: `${Math.round(
-                                  (data.count / (totalDeals || 1)) * 100
-                                )}%`,
-                              }}
-                            />
+                    .map(([stage, data]) => {
+                      let stageTranslation = stage.replace("-", " ");
+                      
+                      // Dịch các giai đoạn sang tiếng Việt
+                      if (stage === "lead") stageTranslation = "Tiềm năng";
+                      if (stage === "qualified") stageTranslation = "Đủ điều kiện";
+                      if (stage === "proposal") stageTranslation = "Đề xuất"; 
+                      if (stage === "negotiation") stageTranslation = "Đàm phán";
+                      if (stage === "closed-won") stageTranslation = "Đã đóng (Thành công)";
+                      if (stage === "closed-lost") stageTranslation = "Đã đóng (Thất bại)";
+                        
+                      return (
+                        <div key={stage} className="flex items-center">
+                          <div className="w-40 font-medium capitalize">
+                            {stageTranslation}
+                          </div>
+                          <div className="flex-1">
+                            <div className="h-2 bg-muted rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-primary"
+                                style={{
+                                  width: `${Math.round(
+                                    (data.count / (totalDeals || 1)) * 100
+                                  )}%`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                          <div className="w-20 text-right">
+                            {data.count} (
+                            {Math.round((data.count / (totalDeals || 1)) * 100)}%)
                           </div>
                         </div>
-                        <div className="w-20 text-right">
-                          {data.count} (
-                          {Math.round((data.count / (totalDeals || 1)) * 100)}%)
-                        </div>
-                      </div>
-                    ))
+                      )
+                    })
                   }
                 </div>
               ) : (
                 <div className="py-12 text-center">
                   <p className="text-muted-foreground mb-4">
-                    No deals data available. Create your first deal to see pipeline statistics.
+                    Không có dữ liệu giao dịch. Tạo giao dịch đầu tiên để xem thống kê đường dẫn.
                   </p>
                   <Button 
                     onClick={() => router.push('/deals/new')}
                     className="gap-2 inline-flex items-center"
                   >
                     <PlusCircle className="h-4 w-4" />
-                    Create First Deal
+                    Tạo giao dịch đầu tiên
                   </Button>
                 </div>
               )}
@@ -280,8 +292,8 @@ export default function DashboardPage() {
         <TabsContent value="tasks" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Tasks Overview</CardTitle>
-              <CardDescription>Status of your ongoing tasks</CardDescription>
+              <CardTitle>Tổng quan công việc</CardTitle>
+              <CardDescription>Trạng thái các công việc đang diễn ra</CardDescription>
             </CardHeader>
             <CardContent>
               {stats.tasks && 
@@ -294,40 +306,50 @@ export default function DashboardPage() {
                     .filter(
                       ([key]) => !["total", "overdue", "dueToday"].includes(key) && typeof stats.tasks?.[key as keyof typeof stats.tasks] === 'number'
                     )
-                    .map(([status, count]) => (
-                      <div key={status} className="flex items-center">
-                        <div className="w-40 font-medium capitalize">
-                          {status.replace("_", " ")}
-                        </div>
-                        <div className="flex-1">
-                          <div className="h-2 bg-muted rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-primary"
-                              style={{
-                                width: `${Math.round(
-                                  (count as number / (stats.tasks?.total || 1)) * 100
-                                )}%`,
-                              }}
-                            />
+                    .map(([status, count]) => {
+                      // Dịch các trạng thái sang tiếng Việt
+                      let statusTranslation = status.replace("_", " ");
+                      
+                      if (status === "pending") statusTranslation = "Cần làm";
+                      if (status === "in_progress") statusTranslation = "Đang thực hiện";
+                      if (status === "completed") statusTranslation = "Hoàn thành";
+                      if (status === "canceled") statusTranslation = "Đã hủy";
+                      
+                      return (
+                        <div key={status} className="flex items-center">
+                          <div className="w-40 font-medium capitalize">
+                            {statusTranslation}
+                          </div>
+                          <div className="flex-1">
+                            <div className="h-2 bg-muted rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-primary"
+                                style={{
+                                  width: `${Math.round(
+                                    (count as number / (stats.tasks?.total || 1)) * 100
+                                  )}%`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                          <div className="w-20 text-right">
+                            {count} ({Math.round((count as number / (stats.tasks?.total || 1)) * 100)}%)
                           </div>
                         </div>
-                        <div className="w-20 text-right">
-                          {count} ({Math.round((count as number / (stats.tasks?.total || 1)) * 100)}%)
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                 </div>
               ) : (
                 <div className="py-12 text-center">
                   <p className="text-muted-foreground mb-4">
-                    No tasks data available. Create your first task to see statistics.
+                    Không có dữ liệu công việc. Tạo công việc đầu tiên để xem thống kê.
                   </p>
                   <Button 
                     onClick={() => router.push('/tasks/new')}
                     className="gap-2 inline-flex items-center"
                   >
                     <PlusCircle className="h-4 w-4" />
-                    Create First Task
+                    Tạo công việc đầu tiên
                   </Button>
                 </div>
               )}
@@ -340,8 +362,8 @@ export default function DashboardPage() {
       {stats.trend && stats.trend.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Your sales performance over time</CardDescription>
+            <CardTitle>Hoạt động gần đây</CardTitle>
+            <CardDescription>Hiệu suất bán hàng của bạn theo thời gian</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-[200px]">

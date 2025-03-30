@@ -24,7 +24,6 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
 import CustomerForm from '@/components/forms/customer-form';
 import { usePermission } from '@/hooks/use-permission';
 
@@ -34,7 +33,7 @@ export default function CustomersPage() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [currentFilters, setCurrentFilters] = useState<Record<string, any>>({});
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   const { checkPermission } = usePermission();
   
