@@ -27,7 +27,7 @@ import { Loader2 } from "lucide-react";
 import api from "@/lib/api";
 
 const formSchema = z.object({
-  title: z.string().min(2, { message: "Tiêu đề phải có ít nhất 2 ký tự" }),
+  name: z.string().min(2, { message: "Tiêu đề phải có ít nhất 2 ký tự" }),
   value: z.coerce.number().min(0, { message: "Giá trị phải là số dương" }),
   stage: z.string(),
   expectedCloseDate: z.string().optional(),
@@ -67,7 +67,7 @@ export default function DealForm({
 
     if (deal) {
       return {
-        title: deal.title,
+        name: deal.name,
         value: deal.value,
         stage: deal.stage,
         expectedCloseDate: deal.expectedCloseDate
@@ -82,7 +82,7 @@ export default function DealForm({
     }
 
     return {
-      title: "",
+      name: "",
       value: 0,
       stage: "lead",
       expectedCloseDate: "",
@@ -151,7 +151,7 @@ export default function DealForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="title"
+            name="name"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Tiêu đề*</FormLabel>
@@ -229,68 +229,6 @@ export default function DealForm({
           />
           <FormField
             control={form.control}
-            name="customer"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Khách hàng*</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  disabled={loading}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      {loading ? (
-                        <div className="flex items-center">
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          <span>Đang tải khách hàng...</span>
-                        </div>
-                      ) : (
-                        <SelectValue placeholder="Chọn khách hàng" />
-                      )}
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {customers.map((customer) => (
-                      <SelectItem key={customer.id} value={customer.id}>
-                        {customer.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="assignedTo"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Người phụ trách</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn người phụ trách" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {users.map((user) => (
-                      <SelectItem key={user.id} value={user.id}>
-                        {user.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
             name="probability"
             render={({ field }) => (
               <FormItem>
@@ -326,6 +264,76 @@ export default function DealForm({
                   <SelectContent>
                     <SelectItem value="active">Đang hoạt động</SelectItem>
                     <SelectItem value="inactive">Không hoạt động</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Khách hàng hiển thị ở hàng riêng biệt */}
+        <div className="grid grid-cols-1 gap-4">
+          <FormField
+            control={form.control}
+            name="customer"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Khách hàng*</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  disabled={loading}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      {loading ? (
+                        <div className="flex items-center">
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <span>Đang tải khách hàng...</span>
+                        </div>
+                      ) : (
+                        <SelectValue placeholder="Chọn khách hàng" />
+                      )}
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {customers.map((customer) => (
+                      <SelectItem key={customer.id} value={customer.id}>
+                        {customer.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Người phụ trách hiển thị ở hàng riêng biệt */}
+        <div className="grid grid-cols-1 gap-4">
+          <FormField
+            control={form.control}
+            name="assignedTo"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Người phụ trách</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Chọn người phụ trách" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {users.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />

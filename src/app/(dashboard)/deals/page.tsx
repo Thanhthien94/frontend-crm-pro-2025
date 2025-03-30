@@ -130,15 +130,15 @@ export default function DealsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Giao Dịch</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Thương vụ</h1>
           <p className="text-muted-foreground">
-            Quản lý đường dẫn bán hàng và theo dõi cơ hội kinh doanh
+            Quản lý liên kết bán hàng và theo dõi cơ hội kinh doanh
           </p>
         </div>
-        {checkPermission('deals', 'create') && (
+        {checkPermission('deal', 'create') && (
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
-            Thêm Giao Dịch
+            Thêm Thương Vụ
           </Button>
         )}
       </div>
@@ -146,7 +146,7 @@ export default function DealsPage() {
       {/* Giao dịch Card */}
       <Card>
         <CardHeader>
-          <CardTitle>Danh sách giao dịch</CardTitle>
+          <CardTitle>Danh sách thương vụ</CardTitle>
         </CardHeader>
         <CardContent>
           {/* Tabs và Bộ lọc */}
@@ -186,8 +186,8 @@ export default function DealsPage() {
             currentPage={page}
             onPageChange={changePage}
             onView={handleViewDeal}
-            onEdit={checkPermission('deals', 'update') ? handleEditDeal : () => {}}
-            onDelete={checkPermission('deals', 'delete') ? handleDeleteDeal : async () => {}}
+            onEdit={checkPermission('deal', 'update') ? handleEditDeal : () => {}}
+            onDelete={checkPermission('deal', 'delete') ? handleDeleteDeal : async () => {}}
             onFilterChange={handleFilterChange}
             loading={loading}
           />
@@ -196,7 +196,7 @@ export default function DealsPage() {
           {totalPages > 1 && (
             <div className="flex justify-between items-center mt-4">
               <div className="text-sm text-muted-foreground">
-                Hiển thị {deals.length} trong tổng số {deals.length * totalPages} giao dịch
+                Hiển thị {deals.length} trong tổng số {deals.length * totalPages} thương vụ
               </div>
               <div className="flex space-x-2">
                 <Button
@@ -244,9 +244,9 @@ export default function DealsPage() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Chỉnh Sửa Giao Dịch</DialogTitle>
+            <DialogTitle>Chỉnh Sửa Thương Vụ</DialogTitle>
             <DialogDescription>
-              Cập nhật thông tin giao dịch.
+              Cập nhật thông tin thương vụ.
             </DialogDescription>
           </DialogHeader>
           {selectedDeal && (

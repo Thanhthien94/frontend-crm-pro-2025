@@ -22,8 +22,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { ActionType, ResourceType, usePermission } from "@/hooks/use-permission";
+import {
+  ActionType,
+  ResourceType,
+  usePermission,
+} from "@/hooks/use-permission";
 import { useSidebar } from "@/components/ui/sidebar";
+import { Logo } from "@/components/ui/logo"; // Thêm component Logo mới
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 type NavItem = {
   title: string;
@@ -112,17 +118,24 @@ export function AppSidebar() {
       <div className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b bg-background px-4 md:hidden">
         {/* <SidebarTrigger /> */}
         <div className="flex-1">
-          {/* <h1 className="text-xl font-bold">CRM Pro</h1> */}
+          {/* Logo mới */}
+          <Logo size="sm" variant="default" />
         </div>
       </div>
 
       {/* Sidebar chính */}
       <Sidebar variant="floating" collapsible="icon">
         <SidebarHeader>
-          <div data-active={!open} className="flex items-center gap-2 data-[active=true]:hidden">
-            <div className="flex-1">
-              <h1 className="text-xl font-bold">CRM Pro</h1>
-            </div>
+          <div
+            data-active={!open}
+            className="flex items-center justify-center gap-2 py-4 data-[active=true]:hidden"
+          >
+            {/* Sử dụng Logo mới */}
+            <Logo
+              size="md"
+              variant={open ? "default" : "sidebar"}
+              showText={open}
+            />
           </div>
         </SidebarHeader>
 
@@ -150,13 +163,17 @@ export function AppSidebar() {
 
         <SidebarFooter>
           {user && (
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                <span className="text-sm font-medium text-primary">
+            <div className="flex items-center gap-2 p-2">
+              {/* Avatar nâng cao với gradient */}
+              <Avatar className="h-8 w-8 bg-gradient-to-br from-primary to-primary/70">
+                <AvatarFallback className="text-primary-foreground font-medium">
                   {user.name?.charAt(0) || "U"}
-                </span>
-              </div>
-              <div data-active={!open} className="flex flex-col truncate data-[active=true]:hidden">
+                </AvatarFallback>
+              </Avatar>
+              <div
+                data-active={!open}
+                className="flex flex-col truncate data-[active=true]:hidden"
+              >
                 <span className="text-sm font-medium">{user.name}</span>
                 <span className="text-xs text-muted-foreground">
                   {user.organization?.name}

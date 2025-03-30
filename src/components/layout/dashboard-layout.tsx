@@ -17,7 +17,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       <div className="flex-1 flex flex-col overflow-hidden relative">
           <Header />
           <main 
-            className="flex-1 overflow-auto md:px-4"
+            className="flex-1 overflow-auto md:pr-4 md:pl-2 py-2"
             style={{ marginTop: HEADER_HEIGHT }}
           >
             {children}

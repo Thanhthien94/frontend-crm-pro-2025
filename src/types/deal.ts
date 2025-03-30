@@ -1,6 +1,6 @@
 export interface Deal {
   _id: string;
-  title: string; // Sử dụng title theo backend
+  name: string; // Sử dụng name theo backend
   value: number;
   currency?: string;
   stage:
@@ -46,7 +46,7 @@ export interface Deal {
 
 // Form data cũng sử dụng title thay vì name để phù hợp với API
 export interface DealFormData {
-  title: string; // Sử dụng title theo backend
+  name: string; // Sử dụng name theo backend
   value: number;
   stage: string;
   expectedCloseDate?: string;

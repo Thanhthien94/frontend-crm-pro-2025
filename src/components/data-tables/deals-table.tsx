@@ -183,12 +183,12 @@ export function DealsTable({
             ) : (
               data.map((deal) => (
                 <TableRow key={deal._id}>
-                  <TableCell className="font-medium">{deal.title}</TableCell>
+                  <TableCell className="font-medium">{deal.name}</TableCell>
                   <TableCell>
-                    {deal.customer.name}
-                    {deal.customer.company && (
+                    {deal.customer?.name}
+                    {deal.customer?.company && (
                       <div className="text-xs text-muted-foreground">
-                        {deal.customer.company}
+                        {deal.customer?.company}
                       </div>
                     )}
                   </TableCell>

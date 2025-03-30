@@ -58,6 +58,7 @@ export function useDeals({
 
         // Cập nhật state
         setDeals(fetchedDeals);
+        console.log('deals: ', fetchedDeals);
 
         // Cập nhật thông tin phân trang
         if (response.data.pagination) {
