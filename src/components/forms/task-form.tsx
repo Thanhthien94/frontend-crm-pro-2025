@@ -243,7 +243,7 @@ export default function TaskForm({
                     <SelectItem value="todo">Cần làm</SelectItem>
                     <SelectItem value="in_progress">Đang thực hiện</SelectItem>
                     <SelectItem value="completed">Hoàn thành</SelectItem>
-                    <SelectItem value="cancelled">Đã hủy</SelectItem>
+                    <SelectItem value="canceled">Đã hủy</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

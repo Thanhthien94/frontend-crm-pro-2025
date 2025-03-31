@@ -67,8 +67,7 @@ export default function TaskDetailPage() {
         setLoading(true);
         const taskData = await fetchTask(id as string);
         setTask(taskData);
-      } catch (error: any) {
-        console.error("Failed to fetch task:", error);
+      } catch {
         router.push("/tasks");
       } finally {
         setLoading(false);
@@ -110,10 +109,7 @@ export default function TaskDetailPage() {
       setTask(updatedTask);
 
       toast.success(`Đã cập nhật trạng thái sang ${getStatusName(newStatus)}`);
-    } catch (error: any) {
-      toast.error("Lỗi khi cập nhật", {
-        description: "Không thể cập nhật trạng thái công việc",
-      });
+    } catch {
     } finally {
       setStatusChanging(false);
     }
@@ -184,7 +180,7 @@ export default function TaskDetailPage() {
     if (
       !task.dueDate ||
       task.status === "completed" ||
-      task.status === "cancelled"
+      task.status === "canceled"
     )
       return false;
     const dueDate = new Date(task.dueDate);
@@ -201,7 +197,7 @@ export default function TaskDetailPage() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    if (task.status === "completed" || task.status === "cancelled") {
+    if (task.status === "completed" || task.status === "canceled") {
       return null;
     }
 
@@ -287,9 +283,9 @@ export default function TaskDetailPage() {
   }
 
   const canComplete =
-    task.status !== "completed" && task.status !== "cancelled";
+    task.status !== "completed" && task.status !== "canceled";
   const canChangeStatus =
-    task.status !== "completed" && task.status !== "cancelled";
+    task.status !== "completed" && task.status !== "canceled";
 
   return (
     <div className="space-y-6">
@@ -340,14 +336,14 @@ export default function TaskDetailPage() {
             </Button>
           )}
 
-          {checkPermission("tasks", "update") && (
+          {checkPermission("task", "update") && (
             <Button onClick={() => router.push(`/tasks/${id}/edit`)}>
               <Edit className="mr-2 h-4 w-4" />
               Chỉnh sửa
             </Button>
           )}
 
-          {checkPermission("tasks", "delete") && (
+          {checkPermission("task", "delete") && (
             <Button
               variant="destructive"
               onClick={() => setIsDeleteDialogOpen(true)}
@@ -395,7 +391,7 @@ export default function TaskDetailPage() {
           <Tabs defaultValue="details">
             <TabsList>
               <TabsTrigger value="details">Chi tiết</TabsTrigger>
-              <TabsTrigger value="liên kết">Liên kết</TabsTrigger>
+              <TabsTrigger value="links">Liên kết</TabsTrigger>
               <TabsTrigger value="activities">Hoạt động</TabsTrigger>
               {task.customFields &&
                 Object.keys(task.customFields).length > 0 && (
@@ -488,8 +484,8 @@ export default function TaskDetailPage() {
               )}
             </TabsContent>
 
-            {/* Liên kết tab */}
-            <TabsContent value="liên kết" className="space-y-4">
+            {/* Links tab */}
+            <TabsContent value="links" className="space-y-4">
               {!task.relatedTo ? (
                 <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
                   <Building className="h-16 w-16 text-muted-foreground/40 mb-4" />
@@ -618,7 +614,7 @@ export default function TaskDetailPage() {
               </div>
             )}
 
-            {checkPermission("tasks", "update") && (
+            {checkPermission("task", "update") && (
               <Button
                 variant="outline"
                 className="w-full mt-4"
@@ -680,7 +676,7 @@ export default function TaskDetailPage() {
             <CardTitle className="text-lg">Hành động nhanh</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {checkPermission("tasks", "update") && (
+            {checkPermission("task", "update") && (
               <Button
                 variant="outline"
                 className="w-full justify-start"
@@ -704,7 +700,7 @@ export default function TaskDetailPage() {
               <Button
                 variant="outline"
                 className="w-full justify-start"
-                onClick={() => router.push(`/customers/${task.customer._id}`)}
+                onClick={() => router.push(`/customers/${task.customer?._id}`)}
               >
                 <Building className="mr-2 h-4 w-4" />
                 Xem khách hàng
@@ -715,7 +711,7 @@ export default function TaskDetailPage() {
               <Button
                 variant="outline"
                 className="w-full justify-start"
-                onClick={() => router.push(`/deals/${task.deal._id}`)}
+                onClick={() => router.push(`/deals/${task.deal?._id}`)}
               >
                 <DollarSign className="mr-2 h-4 w-4" />
                 Xem thương vụ
@@ -748,7 +744,7 @@ export default function TaskDetailPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Bạn có chắc chắn?</AlertDialogTitle>
             <AlertDialogDescription>
-              Hành động này sẽ xóa vĩnh viễn công việc "{task.title}". Không thể
+              Hành động này sẽ xóa vĩnh viễn công việc &quot;{task.title}&quot;. Không thể
               hoàn tác thao tác này.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -773,7 +769,7 @@ export default function TaskDetailPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Hoàn thành công việc</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn đánh dấu công việc "{task.title}" là đã hoàn
+              Bạn có chắc chắn muốn đánh dấu công việc &quot;{task.title}&quot; là đã hoàn
               thành?
             </AlertDialogDescription>
           </AlertDialogHeader>

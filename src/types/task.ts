@@ -4,8 +4,7 @@ export interface Task {
   description?: string;
   dueDate?: string;
   priority: "low" | "medium" | "high";
-  // Sử dụng đúng các giá trị của backend
-  status: "todo" | "in_progress" | "completed" | "cancelled"; // Theo backend
+  status: "todo" | "in_progress" | "completed" | "canceled";
   assignedTo?: {
     _id: string;
     name: string;

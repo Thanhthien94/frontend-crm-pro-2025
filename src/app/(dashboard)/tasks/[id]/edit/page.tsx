@@ -56,13 +56,8 @@ export default function EditTaskPage() {
     try {
       // Sử dụng updateTask từ hook thay vì gọi service trực tiếp
       await updateTask(id as string, data);
-      toast.success("Cập nhật công việc thành công");
       router.push(`/tasks/${id}`);
-    } catch (error: any) {
-      toast.error("Lỗi", {
-        description:
-          error.response?.data?.error || "Không thể cập nhật công việc",
-      });
+    } catch {
     } finally {
       setIsSubmitting(false);
     }

@@ -163,7 +163,7 @@ export function AppSidebar() {
 
         <SidebarFooter>
           {user && (
-            <div className="flex items-center gap-2 p-2">
+            <div className="flex items-center gap-2">
               {/* Avatar nâng cao với gradient */}
               <Avatar className="h-8 w-8 bg-gradient-to-br from-primary to-primary/70">
                 <AvatarFallback className="text-primary-foreground font-medium">
