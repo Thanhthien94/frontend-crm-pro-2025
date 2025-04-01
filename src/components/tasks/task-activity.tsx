@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { formatDateTime } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { taskService } from "@/services/taskService";
+import { useTasks } from "@/hooks/use-tasks";
 
 interface Activity {
   _id: string;
@@ -45,13 +46,13 @@ export function TaskActivity({ taskId }: TaskActivityProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { getTaskActivities } = taskService;
+
   useEffect(() => {
     const fetchActivities = async () => {
       try {
         setLoading(true);
-        // Sử dụng taskService để lấy hoạt động liên quan đến task
-        // Giả sử taskService đã có phương thức getTaskActivities
-        const response = await taskService.getTaskActivities(taskId);
+        const response = await getTaskActivities(taskId);
         setActivities(response.data.data || []);
       } catch (error: any) {
         console.error("Error fetching task activities:", error);

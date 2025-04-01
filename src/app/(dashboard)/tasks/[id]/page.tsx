@@ -486,7 +486,7 @@ export default function TaskDetailPage() {
 
             {/* Links tab */}
             <TabsContent value="links" className="space-y-4">
-              {!task.relatedTo ? (
+              {!task.relatedTo && !task.customer && !task.deal ? (
                 <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
                   <Building className="h-16 w-16 text-muted-foreground/40 mb-4" />
                   <p className="text-lg font-medium">Không có liên kết nào</p>
@@ -497,7 +497,7 @@ export default function TaskDetailPage() {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {task.relatedTo.model === "Customer" && task.customer && (
+                  {task.customer && (
                     <div className="bg-muted/30 p-4 rounded-lg shadow-sm border">
                       <div className="flex items-center gap-3 mb-2">
                         <Building className="h-5 w-5 text-muted-foreground" />
@@ -531,7 +531,7 @@ export default function TaskDetailPage() {
                     </div>
                   )}
 
-                  {task.relatedTo.model === "Deal" && task.deal && (
+                  {task.deal && (
                     <div className="bg-muted/30 p-4 rounded-lg shadow-sm border">
                       <div className="flex items-center gap-3 mb-2">
                         <DollarSign className="h-5 w-5 text-muted-foreground" />
@@ -541,7 +541,7 @@ export default function TaskDetailPage() {
                       <div className="flex justify-between items-start">
                         <div>
                           <p className="font-medium text-lg">
-                            {task.deal.title}
+                            {task.deal.name}
                           </p>
                           <div className="flex items-center mt-1">
                             <DollarSign className="h-4 w-4 text-muted-foreground mr-1" />

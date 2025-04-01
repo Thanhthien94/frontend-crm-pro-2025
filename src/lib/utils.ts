@@ -27,3 +27,17 @@ export function formatDateTime(date: string | Date): string {
     return 'Invalid date';
   }
 }
+
+export function formatCurrency(value: number, currency: string = 'VND'): string {
+  if (value === undefined || value === null) return 'N/A';
+  
+  try {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency,
+    }).format(value);
+  } catch (error) {
+    console.error('Currency format error:', error);
+    return 'Invalid currency';
+  }
+}

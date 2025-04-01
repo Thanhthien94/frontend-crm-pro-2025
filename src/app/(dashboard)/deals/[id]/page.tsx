@@ -1,34 +1,29 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { Deal } from '@/types/deal';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
-} from "@/components/ui/tabs";
-import { 
-  ArrowLeft, 
-  Edit, 
-  Trash2, 
-  DollarSign, 
-  User, 
-  Calendar
-} from 'lucide-react';
-import api from '@/lib/api';
-import { toast } from 'sonner';
-import { usePermission } from '@/hooks/use-permission';
-import { formatDate } from '@/lib/utils';
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { Deal } from "@/types/deal";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  ArrowLeft,
+  Edit,
+  Trash2,
+  DollarSign,
+  User,
+  Calendar,
+} from "lucide-react";
+import api from "@/lib/api";
+import { toast } from "sonner";
+import { usePermission } from "@/hooks/use-permission";
+import { formatDate } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,7 +33,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
 
 export default function DealDetailPage() {
   const { id } = useParams();
@@ -47,59 +42,65 @@ export default function DealDetailPage() {
   const [loading, setLoading] = useState(true);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const { checkPermission } = usePermission();
-  
+
   useEffect(() => {
     const fetchDeal = async () => {
       try {
         const response = await api.get(`/deals/${id}`);
         setDeal(response.data.data);
       } catch (error: any) {
-        console.error('Failed to fetch deal:', error);
-        toast.error(error.response?.data?.error || 'Không thể lấy thông tin giao dịch');
-        router.push('/deals');
+        console.error("Failed to fetch deal:", error);
+        toast.error(
+          error.response?.data?.error || "Không thể lấy thông tin giao dịch"
+        );
+        router.push("/deals");
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchDeal();
   }, [id, router]);
 
   const handleDelete = async () => {
     try {
       await api.delete(`/deals/${id}`);
-      toast.success('Đã xóa giao dịch thành công', {
-        description: 'Giao dịch đã được xóa khỏi hệ thống.',
+      toast.success("Đã xóa giao dịch thành công", {
+        description: "Giao dịch đã được xóa khỏi hệ thống.",
       });
-      router.push('/deals');
+      router.push("/deals");
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Không thể xóa giao dịch');
+      toast.error(error.response?.data?.error || "Không thể xóa giao dịch");
     }
   };
 
   // Function to render stage badge with appropriate colors
   const renderStageBadge = (stage: string) => {
     const colorMap: Record<string, string> = {
-      'lead': 'bg-gray-100 text-gray-800',
-      'qualified': 'bg-blue-100 text-blue-800',
-      'proposal': 'bg-purple-100 text-purple-800',
-      'negotiation': 'bg-yellow-100 text-yellow-800',
-      'closed-won': 'bg-green-100 text-green-800',
-      'closed-lost': 'bg-red-100 text-red-800',
+      lead: "bg-gray-100 text-gray-800",
+      qualified: "bg-blue-100 text-blue-800",
+      proposal: "bg-purple-100 text-purple-800",
+      negotiation: "bg-yellow-100 text-yellow-800",
+      "closed-won": "bg-green-100 text-green-800",
+      "closed-lost": "bg-red-100 text-red-800",
     };
-    
-    const style = colorMap[stage] || 'bg-gray-100 text-gray-800';
-    const label = stage.replace('-', ' ');
-    
+
+    const style = colorMap[stage] || "bg-gray-100 text-gray-800";
+    const label = stage.replace("-", " ");
+
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${style}`}>
+      <span
+        className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${style}`}
+      >
         {label}
       </span>
     );
   };
 
   if (loading) {
-    return <div className="flex justify-center items-center h-full">Đang tải...</div>;
+    return (
+      <div className="flex justify-center items-center h-full">Đang tải...</div>
+    );
   }
 
   if (!deal) {
@@ -109,19 +110,22 @@ export default function DealDetailPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <Button variant="outline" onClick={() => router.push('/deals')}>
+        <Button variant="outline" onClick={() => router.push("/deals")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Quay lại Giao dịch
         </Button>
         <div className="flex space-x-2">
-          {checkPermission('deals', 'update') && (
+          {checkPermission("deal", "update") && (
             <Button onClick={() => router.push(`/deals/${id}/edit`)}>
               <Edit className="mr-2 h-4 w-4" />
               Chỉnh sửa
             </Button>
           )}
-          {checkPermission('deals', 'delete') && (
-            <Button variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
+          {checkPermission("deal", "delete") && (
+            <Button
+              variant="destructive"
+              onClick={() => setIsDeleteDialogOpen(true)}
+            >
               <Trash2 className="mr-2 h-4 w-4" />
               Xóa
             </Button>
@@ -135,7 +139,7 @@ export default function DealDetailPage() {
             <CardHeader>
               <div className="flex justify-between">
                 <div>
-                  <CardTitle className="text-2xl">{deal.title}</CardTitle>
+                  <CardTitle className="text-2xl">{deal.name}</CardTitle>
                   <CardDescription>
                     {renderStageBadge(deal.stage)}
                   </CardDescription>
@@ -146,7 +150,9 @@ export default function DealDetailPage() {
                     {deal.value.toLocaleString()}
                   </div>
                   {deal.probability !== undefined && (
-                    <CardDescription>{deal.probability}% khả năng thành công</CardDescription>
+                    <CardDescription>
+                      {deal.probability}% khả năng thành công
+                    </CardDescription>
                   )}
                 </div>
               </div>
@@ -161,47 +167,133 @@ export default function DealDetailPage() {
                 <TabsContent value="details" className="space-y-4">
                   <div className="grid grid-cols-2 gap-4 py-4">
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Ngày dự kiến đóng</p>
-                      <p>{deal.expectedCloseDate ? formatDate(deal.expectedCloseDate) : 'N/A'}</p>
+                      <p className="text-sm font-medium text-gray-500">
+                        Ngày dự kiến đóng
+                      </p>
+                      <p>
+                        {deal.expectedCloseDate
+                          ? formatDate(deal.expectedCloseDate)
+                          : "N/A"}
+                      </p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Trạng thái</p>
+                      <p className="text-sm font-medium text-gray-500">
+                        Trạng thái
+                      </p>
                       <p className="capitalize">{deal.status}</p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Ngày tạo</p>
+                      <p className="text-sm font-medium text-gray-500">
+                        Ngày tạo
+                      </p>
                       <p>{formatDate(deal.createdAt)}</p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Cập nhật lần cuối</p>
+                      <p className="text-sm font-medium text-gray-500">
+                        Cập nhật lần cuối
+                      </p>
                       <p>{formatDate(deal.updatedAt)}</p>
                     </div>
                   </div>
                   {deal.notes && (
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Ghi chú</p>
+                      <p className="text-sm font-medium text-gray-500">
+                        Ghi chú
+                      </p>
                       <p className="whitespace-pre-line mt-1">{deal.notes}</p>
                     </div>
                   )}
                 </TabsContent>
                 <TabsContent value="tasks">
-                  <div className="p-4 text-center">
-                    <Calendar className="h-12 w-12 mx-auto text-gray-300" />
-                    <h3 className="mt-2 text-lg font-semibold">Chưa có công việc nào</h3>
-                    <p className="text-sm text-gray-500">
-                      Tạo một công việc mới liên quan đến giao dịch này.
-                    </p>
-                    <Button className="mt-4" onClick={() => router.push('/tasks/new')}>
-                      Tạo công việc
-                    </Button>
-                  </div>
+                  {deal.relatedTasks && deal.relatedTasks.length > 0 ? (
+                    <div className="space-y-4">
+                      {deal.relatedTasks.map((task) => (
+                        <div
+                          key={task._id}
+                          className="border rounded-md p-4 hover:bg-gray-50"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <div
+                                className={`w-2 h-2 rounded-full mr-3 ${
+                                  task.status === "completed"
+                                    ? "bg-green-500"
+                                    : task.status === "in_progress"
+                                    ? "bg-blue-500"
+                                    : task.status === "canceled"
+                                    ? "bg-gray-500"
+                                    : "bg-yellow-500"
+                                }`}
+                              />
+                              <h3 className="font-medium">{task.title}</h3>
+                            </div>
+                            <div>
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  task.priority === "high"
+                                    ? "bg-red-100 text-red-800"
+                                    : task.priority === "medium"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-blue-100 text-blue-800"
+                                }`}
+                              >
+                                {task.priority}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="mt-2 text-sm text-gray-500">
+                            {task.description && (
+                              <p className="mb-2">{task.description}</p>
+                            )}
+                            <div className="flex justify-between mt-2">
+                              <div className="flex items-center">
+                                <Calendar className="h-4 w-4 mr-1" />
+                                <span>Hạn: {formatDate(task.dueDate as string)}</span>
+                              </div>
+                              <div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                    router.push(`/tasks/${task._id}`)
+                                  }
+                                >
+                                  Xem chi tiết
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-4 text-center">
+                      <Calendar className="h-12 w-12 mx-auto text-gray-300" />
+                      <h3 className="mt-2 text-lg font-semibold">
+                        Chưa có công việc nào
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        Tạo một công việc mới liên quan đến giao dịch này.
+                      </p>
+                      <Button
+                        className="mt-4"
+                        onClick={() => router.push("/tasks/new")}
+                      >
+                        Tạo công việc
+                      </Button>
+                    </div>
+                  )}
                 </TabsContent>
                 <TabsContent value="activities">
                   <div className="p-4 text-center">
                     <User className="h-12 w-12 mx-auto text-gray-300" />
-                    <h3 className="mt-2 text-lg font-semibold">Chưa có hoạt động nào</h3>
+                    <h3 className="mt-2 text-lg font-semibold">
+                      Chưa có hoạt động nào
+                    </h3>
                     <p className="text-sm text-gray-500">
-                      Các hoạt động liên quan đến giao dịch này sẽ xuất hiện ở đây.
+                      Các hoạt động liên quan đến giao dịch này sẽ xuất hiện ở
+                      đây.
                     </p>
                   </div>
                 </TabsContent>
@@ -218,7 +310,9 @@ export default function DealDetailPage() {
               <div className="space-y-4">
                 <div>
                   <h3 className="font-medium">{deal.customer.name}</h3>
-                  <p className="text-sm text-muted-foreground">{deal.customer.email}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {deal.customer.email}
+                  </p>
                   {deal.customer.company && (
                     <p className="text-sm">{deal.customer.company}</p>
                   )}
@@ -233,7 +327,7 @@ export default function DealDetailPage() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card className="mt-4">
             <CardHeader>
               <CardTitle>Người phụ trách</CardTitle>
@@ -248,15 +342,21 @@ export default function DealDetailPage() {
                   </div>
                   <div>
                     <p className="font-medium">{deal.assignedTo.name}</p>
-                    <p className="text-sm text-muted-foreground">{deal.assignedTo.email}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {deal.assignedTo.email}
+                    </p>
                   </div>
                 </div>
               ) : (
                 <p className="text-muted-foreground">Chưa phân công cho ai</p>
               )}
-              
-              {checkPermission('deals', 'update') && (
-                <Button variant="outline" className="w-full mt-4" onClick={() => router.push(`/deals/${id}/edit`)}>
+
+              {checkPermission("deal", "update") && (
+                <Button
+                  variant="outline"
+                  className="w-full mt-4"
+                  onClick={() => router.push(`/deals/${id}/edit`)}
+                >
                   Thay đổi phân công
                 </Button>
               )}
@@ -266,12 +366,16 @@ export default function DealDetailPage() {
       </div>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Bạn có chắc chắn không?</AlertDialogTitle>
             <AlertDialogDescription>
-              Hành động này sẽ xóa vĩnh viễn giao dịch {deal.title}. Bạn không thể hoàn tác việc này.
+              Hành động này sẽ xóa vĩnh viễn giao dịch {deal.name}. Bạn không
+              thể hoàn tác việc này.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

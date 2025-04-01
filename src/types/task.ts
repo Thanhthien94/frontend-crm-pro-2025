@@ -23,10 +23,11 @@ export interface Task {
   };
   deal?: {
     _id: string;
-    title: string;
+    name: string;
     value?: number;
   };
   reminderDate?: string;
+  completedAt?: string;
   completedDate?: string;
   completedBy?: string | { _id: string; name: string; email: string };
   createdBy: {

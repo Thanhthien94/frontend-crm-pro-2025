@@ -1,3 +1,6 @@
+import { Deal } from "./deal";
+import { Task } from "./task";
+
 export interface Customer {
   _id: string;
   name: string;
@@ -13,7 +16,10 @@ export interface Customer {
     email: string;
   };
   notes?: string;
+  organization?: string;
   customFields?: Record<string, any>;
+  relatedDeals?: Array<Deal>;
+  relatedTasks?: Array<Task>;
   createdAt: string;
   updatedAt: string;
 }

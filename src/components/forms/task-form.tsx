@@ -144,7 +144,7 @@ export default function TaskForm({
         setDeals(
           response.data.data.map((deal: any) => ({
             id: deal._id,
-            name: deal.title,
+            name: deal.name,
           }))
         );
       } catch (error) {

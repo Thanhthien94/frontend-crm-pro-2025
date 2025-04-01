@@ -277,8 +277,8 @@ export default function TasksPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-between items-center mt-4">
-              <div className="text-sm text-muted-foreground">
+            <div className="flex justify-between items-center mt-4 text-xs">
+              <div className="text-muted-foreground">
                 Hiển thị {tasks.length} trong tổng số {totalTasks} công việc
               </div>
               <div className="flex space-x-2">
@@ -287,16 +287,18 @@ export default function TasksPage() {
                   size="sm"
                   onClick={() => changePage(page - 1)}
                   disabled={page === 1}
+                  className="cursor-pointer text-xs"
                 >
                   Trang trước
                 </Button>
-                <div className="flex items-center text-sm">
+                <div className="flex items-center text-xs">
                   Trang {page} / {totalPages}
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => changePage(page + 1)}
+                  className="cursor-pointer text-xs"
                   disabled={page === totalPages}
                 >
                   Trang sau

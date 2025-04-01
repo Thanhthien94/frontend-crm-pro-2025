@@ -1,3 +1,5 @@
+import { Task } from "./task";
+
 export interface Deal {
   _id: string;
   name: string; // Sử dụng name theo backend
@@ -40,6 +42,7 @@ export interface Deal {
     date: string;
     user: string;
   }>;
+  relatedTasks?: Array<Task>;
   createdAt: string;
   updatedAt: string;
 }

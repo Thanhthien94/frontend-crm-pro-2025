@@ -101,7 +101,7 @@ export function TasksTable({
     return (
       dueDate < today &&
       task.status !== "completed" &&
-      task.status !== "cancelled"
+      task.status !== "canceled"
     );
   };
 
@@ -115,7 +115,7 @@ export function TasksTable({
             <TableHead>Độ ưu tiên</TableHead>
             <TableHead>Trạng thái</TableHead>
             <TableHead>Giao cho</TableHead>
-            <TableHead className="text-right">Thao tác</TableHead>
+            <TableHead className="text-right pr-2">Thao tác</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -184,15 +184,17 @@ export function TasksTable({
                 <TableCell>{task.assignedTo?.name || "Chưa giao"}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end space-x-2">
-                    {task.status !== "completed" &&
-                      task.status !== "cancelled" && (
+                    {
+                      task.status !== "canceled" && (
                         <Button
+                          disabled={task.status === "completed"}
                           variant="ghost"
                           size="icon"
                           onClick={() => onComplete(task)}
                           title="Đánh dấu hoàn thành"
+                          className="cursor-pointer"
                         >
-                          <CheckCircle className="h-4 w-4" />
+                          <CheckCircle data-active={task.status === 'completed'} className="h-4 w-4 data-[active=true]:text-green-400" />
                         </Button>
                       )}
                     <Button
@@ -200,6 +202,7 @@ export function TasksTable({
                       size="icon"
                       onClick={() => onView(task)}
                       title="Xem chi tiết"
+                      className="cursor-pointer"
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
@@ -209,6 +212,7 @@ export function TasksTable({
                         size="icon"
                         onClick={() => onEdit(task)}
                         title="Sửa công việc"
+                        className="cursor-pointer"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
